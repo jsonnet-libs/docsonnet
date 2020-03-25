@@ -13,7 +13,7 @@ type Doc struct {
 	Import string `json:"import"`
 	Help   string `json:"help"`
 
-	API Object `json:"api"`
+	API Fields `json:"api"`
 }
 
 func main() {
@@ -76,6 +76,28 @@ type Field struct {
 	Object *Object `json:"object,omitempty"`
 	// Any other value
 	Value *Value `json:"value,omitempty"`
+}
+
+func (o *Field) UnmarshalJSON(data []byte) error {
+	type fake Field
+
+	var f fake
+	if err := json.Unmarshal(data, &f); err != nil {
+		return err
+	}
+
+	switch {
+	case f.Function != nil:
+		o.Function = f.Function
+	case f.Object != nil:
+		o.Object = f.Object
+	case f.Value != nil:
+		o.Value = f.Value
+	default:
+		return errors.New("field has no value")
+	}
+
+	return nil
 }
 
 func (o Field) MarshalJSON() ([]byte, error) {

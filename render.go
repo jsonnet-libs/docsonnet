@@ -37,7 +37,9 @@ var objTmpl = strings.Replace(`
 {{ .Help }}
 `, "´", "`", -1)
 
-type obj Object
+type obj struct {
+	Object
+}
 
 func (o obj) Render() string {
 	t := template.Must(template.New("").Parse(objTmpl))
@@ -48,7 +50,9 @@ func (o obj) Render() string {
 	return buf.String()
 }
 
-type fn Function
+type fn struct {
+	Function
+}
 
 func (f fn) Params() string {
 	args := make([]string, 0, len(f.Args))
@@ -90,8 +94,8 @@ func render(d Doc) (string, error) {
 		Name:   d.Name,
 		Import: d.Import,
 		Help:   d.Help,
-		Index:  buildIndex(d.API.Fields, 0),
-		Fields: renderables(d.API.Fields, ""),
+		Index:  buildIndex(d.API, 0),
+		Fields: renderables(d.API, ""),
 	}); err != nil {
 		return "", err
 	}
@@ -118,11 +122,11 @@ func renderables(fields map[string]Field, prefix string) []Renderable {
 	for _, f := range fields {
 		switch {
 		case f.Function != nil:
-			fnc := fn(*f.Function)
+			fnc := fn{*f.Function}
 			fnc.Name = strings.TrimPrefix(prefix+"."+fnc.Name, ".")
 			rs = append(rs, fnc)
 		case f.Object != nil:
-			o := obj(*f.Object)
+			o := obj{*f.Object}
 			o.Name = strings.TrimPrefix(prefix+"."+o.Name, ".")
 			rs = append(rs, o)
 
@@ -153,7 +157,7 @@ func buildIndex(fields map[string]Field, level int) []indexElem {
 func indexLine(f Field) string {
 	switch {
 	case f.Function != nil:
-		return "fn " + fn(*f.Function).Signature()
+		return "fn " + fn{*f.Function}.Signature()
 	case f.Object != nil:
 		return fmt.Sprintf("obj %s", f.Object.Name)
 	}

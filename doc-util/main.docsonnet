@@ -1,0 +1,8 @@
+local d = import './main.libsonnet';
+
+d.new('d', url='github.com/jsonnet-libs/docsonnet/doc-util')
++ d.withAPI(import './main.libsonnet')
++ d.withHelp(|||
+  `doc-util` provides a Jsonnet interface for `docsonnet`,
+   a Jsonnet API doc generator that uses structured data instead of comments.
+|||)
