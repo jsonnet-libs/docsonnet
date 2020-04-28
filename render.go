@@ -13,7 +13,7 @@ import (
 var indexTmpl = strings.Replace(`
 # package {{.Name}}
 ´´´jsonnet
-local {{.Name}} = import {{.Import}}
+local {{.Name}} = import "{{.Import}}"
 ´´´
 
 {{.Help}}
