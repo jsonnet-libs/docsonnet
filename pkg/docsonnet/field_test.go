@@ -1,4 +1,4 @@
-package main
+package docsonnet
 
 import (
 	"encoding/json"

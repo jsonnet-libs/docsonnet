@@ -1,15 +1,16 @@
-package main
+package render
 
 import (
 	"fmt"
 	"sort"
 	"strings"
 
+	"github.com/sh0rez/docsonnet/pkg/docsonnet"
 	"github.com/sh0rez/docsonnet/pkg/md"
 	"github.com/sh0rez/docsonnet/pkg/slug"
 )
 
-func render(pkg Package) string {
+func Render(pkg docsonnet.Package) string {
 	// head
 	elems := []md.Elem{
 		md.Headline(1, "package "+pkg.Name),
@@ -17,27 +18,44 @@ func render(pkg Package) string {
 		md.Text(pkg.Help),
 	}
 
-	// index
-	elems = append(elems,
-		md.Headline(2, "Index"),
-		md.List(mdIndex(pkg.API, "", slug.New())...),
-	)
+	// subpackages
+	if len(pkg.Sub) > 0 {
+		elems = append(elems, md.Headline(2, "Subpackages"))
+		var items []md.Elem
+		for k := range Paths(pkg) {
+			name := strings.TrimSuffix(k, ".md")
+			if name == pkg.Name {
+				continue
+			}
+			items = append(items, md.Link(md.Text(name), k))
+		}
+		elems = append(elems, md.List(items...))
+	}
 
-	// api
-	elems = append(elems, md.Headline(2, "Fields"))
-	elems = append(elems, mdApi(pkg.API, "")...)
+	// fields of this package
+	if len(pkg.API) > 0 {
+		// index
+		elems = append(elems,
+			md.Headline(2, "Index"),
+			md.List(renderIndex(pkg.API, "", slug.New())...),
+		)
+
+		// api
+		elems = append(elems, md.Headline(2, "Fields"))
+		elems = append(elems, renderApi(pkg.API, "")...)
+	}
 
 	return md.Doc(elems...).String()
 }
 
-func mdIndex(api Fields, path string, s *slug.Slugger) []md.Elem {
+func renderIndex(api docsonnet.Fields, path string, s *slug.Slugger) []md.Elem {
 	var elems []md.Elem
 	for _, k := range sortFields(api) {
 		v := api[k]
 		switch {
 		case v.Function != nil:
 			fn := v.Function
-			name := md.Text(fmt.Sprintf("fn %s(%s)", fn.Name, params(fn.Args)))
+			name := md.Text(fmt.Sprintf("fn %s(%s)", fn.Name, renderParams(fn.Args)))
 			link := "#" + s.Slug("fn "+path+fn.Name)
 			elems = append(elems, md.Link(md.Code(name), link))
 		case v.Object != nil:
@@ -45,13 +63,13 @@ func mdIndex(api Fields, path string, s *slug.Slugger) []md.Elem {
 			name := md.Text("obj " + path + obj.Name)
 			link := "#" + s.Slug("obj "+path+obj.Name)
 			elems = append(elems, md.Link(md.Code(name), link))
-			elems = append(elems, md.List(mdIndex(obj.Fields, path+obj.Name+".", s)...))
+			elems = append(elems, md.List(renderIndex(obj.Fields, path+obj.Name+".", s)...))
 		}
 	}
 	return elems
 }
 
-func mdApi(api Fields, path string) []md.Elem {
+func renderApi(api docsonnet.Fields, path string) []md.Elem {
 	var elems []md.Elem
 
 	for _, k := range sortFields(api) {
@@ -61,7 +79,7 @@ func mdApi(api Fields, path string) []md.Elem {
 			fn := v.Function
 			elems = append(elems,
 				md.Headline(3, fmt.Sprintf("fn %s%s", path, fn.Name)),
-				md.CodeBlock("ts", fmt.Sprintf("%s(%s)", fn.Name, params(fn.Args))),
+				md.CodeBlock("ts", fmt.Sprintf("%s(%s)", fn.Name, renderParams(fn.Args))),
 				md.Text(fn.Help),
 			)
 		case v.Object != nil:
@@ -70,14 +88,14 @@ func mdApi(api Fields, path string) []md.Elem {
 				md.Headline(2, fmt.Sprintf("obj %s%s", path, obj.Name)),
 				md.Text(obj.Help),
 			)
-			elems = append(elems, mdApi(obj.Fields, path+obj.Name+".")...)
+			elems = append(elems, renderApi(obj.Fields, path+obj.Name+".")...)
 		}
 	}
 
 	return elems
 }
 
-func sortFields(api Fields) []string {
+func sortFields(api docsonnet.Fields) []string {
 	keys := make([]string, len(api))
 	for k := range api {
 		keys = append(keys, k)
@@ -97,7 +115,7 @@ func sortFields(api Fields) []string {
 	return keys
 }
 
-func params(a []Argument) string {
+func renderParams(a []docsonnet.Argument) string {
 	args := make([]string, 0, len(a))
 	for _, a := range a {
 		arg := a.Name
