@@ -3,17 +3,19 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 )
 
-type Doc struct {
+type Package struct {
 	Name   string `json:"name"`
 	Import string `json:"import"`
 	Help   string `json:"help"`
 
 	API Fields `json:"api"`
+	Sub map[string]Package
 }
 
 func main() {
@@ -22,14 +24,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	var d Doc
+	var d Package
 	if err := json.Unmarshal(data, &d); err != nil {
 		log.Fatalln(err)
 	}
 
-	if _, err := render(d); err != nil {
-		log.Fatalln(err)
-	}
+	fmt.Println(render(d))
 }
 
 type Object struct {

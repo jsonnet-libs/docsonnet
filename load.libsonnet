@@ -54,5 +54,4 @@
       then reshaped { api: $.fillObjects(reshaped.api) }
       else reshaped;
     self.clean(filled),
-    // reshaped,
 }
