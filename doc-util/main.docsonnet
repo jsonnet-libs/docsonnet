@@ -1,1 +1,0 @@
-(import "../load.libsonnet").package(import "./main.libsonnet")
