@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
+
+	"github.com/go-clix/cli"
+	"github.com/google/go-jsonnet"
+	"github.com/markbates/pkger"
 )
 
 type Package struct {
@@ -14,22 +17,125 @@ type Package struct {
 	Import string `json:"import"`
 	Help   string `json:"help"`
 
-	API Fields `json:"api"`
-	Sub map[string]Package
+	API Fields             `json:"api,omitempty"`
+	Sub map[string]Package `json:"sub,omitempty"`
 }
 
 func main() {
-	data, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
+	root := &cli.Command{
+		Use:   "docsonnet",
+		Short: "Utility to parse and transform Jsonnet code that uses the docsonnet extension",
+	}
+
+	root.AddCommand(loadCmd(), renderCmd())
+
+	if err := root.Execute(); err != nil {
 		log.Fatalln(err)
+	}
+}
+
+func loadCmd() *cli.Command {
+	cmd := &cli.Command{
+		Use:   "load",
+		Short: "extracts docsonnet from Jsonnet and prints it as JSON",
+		Args:  cli.ArgsExact(1),
+	}
+
+	cmd.Run = func(cmd *cli.Command, args []string) error {
+		pkg, err := Load(args[0])
+		if err != nil {
+			return err
+		}
+
+		data, err := json.MarshalIndent(pkg, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(data))
+		return nil
+	}
+
+	return cmd
+}
+
+func renderCmd() *cli.Command {
+	cmd := &cli.Command{
+		Use:   "render",
+		Short: "writes all found docsonnet packages to Markdown (.md) files, suitable for e.g. GitHub",
+		Args:  cli.ArgsExact(1),
+	}
+
+	cmd.Run = func(cmd *cli.Command, args []string) error {
+		pkg, err := Load(args[0])
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(render(*pkg))
+		return nil
+	}
+
+	return cmd
+}
+
+func Load(filename string) (*Package, error) {
+	file, err := pkger.Open("/load.libsonnet")
+	if err != nil {
+		return nil, err
+	}
+	load, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	vm := jsonnet.MakeVM()
+	importer, err := newImporter()
+	if err != nil {
+		return nil, err
+	}
+	vm.Importer(importer)
+
+	vm.ExtCode("main", fmt.Sprintf(`(import "%s")`, filename))
+	data, err := vm.EvaluateSnippet("load.libsonnet", string(load))
+	if err != nil {
+		return nil, err
 	}
 
 	var d Package
-	if err := json.Unmarshal(data, &d); err != nil {
+	if err := json.Unmarshal([]byte(data), &d); err != nil {
 		log.Fatalln(err)
 	}
 
-	fmt.Println(render(d))
+	return &d, nil
+}
+
+type Importer struct {
+	fi   jsonnet.FileImporter
+	util jsonnet.Contents
+}
+
+func newImporter() (*Importer, error) {
+	file, err := pkger.Open("/doc-util/main.libsonnet")
+	if err != nil {
+		return nil, err
+	}
+	load, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Importer{
+		fi:   jsonnet.FileImporter{},
+		util: jsonnet.MakeContents(string(load)),
+	}, nil
+}
+
+func (i *Importer) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
+	if importedPath == "doc-util/main.libsonnet" {
+		return i.util, "<internal>", nil
+	}
+
+	return i.fi.Import(importedFrom, importedPath)
 }
 
 type Object struct {

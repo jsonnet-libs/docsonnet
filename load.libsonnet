@@ -1,4 +1,4 @@
-{
+local lib = {
   // reshape converts the Jsonnet structure to the one used by docsonnet:
   // - put fields into an `api` key
   // - put subpackages into `sub` key
@@ -54,4 +54,6 @@
       then reshaped { api: $.fillObjects(reshaped.api) }
       else reshaped;
     self.clean(filled),
-}
+};
+
+lib.package(std.extVar("main"))
