@@ -3,6 +3,8 @@ package md
 import (
 	"fmt"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Elem interface {
@@ -127,4 +129,21 @@ func Link(desc Elem, href string) LinkType {
 		desc: desc,
 		href: href,
 	}
+}
+
+type FrontmatterType struct {
+	yaml string
+}
+
+func (f FrontmatterType) String() string {
+	return "---\n" + f.yaml + "---"
+}
+
+func Frontmatter(data map[string]interface{}) FrontmatterType {
+	d, err := yaml.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+
+	return FrontmatterType{yaml: string(d)}
 }

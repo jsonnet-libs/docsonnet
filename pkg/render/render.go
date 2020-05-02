@@ -10,24 +10,35 @@ import (
 	"github.com/sh0rez/docsonnet/pkg/slug"
 )
 
-func Render(pkg docsonnet.Package) string {
+func Render(pkg docsonnet.Package) map[string]string {
+	return render(pkg, nil, true)
+}
+
+func render(pkg docsonnet.Package, parents []string, root bool) map[string]string {
+	link := "/" + strings.Join(append(parents, pkg.Name), "/")
+	if root {
+		link = "/"
+	}
+
 	// head
 	elems := []md.Elem{
+		md.Frontmatter(map[string]interface{}{
+			"permalink": link,
+		}),
 		md.Headline(1, "package "+pkg.Name),
 		md.CodeBlock("jsonnet", fmt.Sprintf(`local %s = import "%s"`, pkg.Name, pkg.Import)),
 		md.Text(pkg.Help),
 	}
 
-	// subpackages
 	if len(pkg.Sub) > 0 {
 		elems = append(elems, md.Headline(2, "Subpackages"))
 		var items []md.Elem
-		for k := range Paths(pkg) {
-			name := strings.TrimSuffix(k, ".md")
-			if name == pkg.Name {
-				continue
+		for _, s := range pkg.Sub {
+			link := strings.Join(append(parents, pkg.Name, s.Name), "-")
+			if root {
+				link = strings.Join(append(parents, s.Name), "-")
 			}
-			items = append(items, md.Link(md.Text(name), k))
+			items = append(items, md.Link(md.Text(s.Name), link+".md"))
 		}
 		elems = append(elems, md.List(items...))
 	}
@@ -45,7 +56,29 @@ func Render(pkg docsonnet.Package) string {
 		elems = append(elems, renderApi(pkg.API, "")...)
 	}
 
-	return md.Doc(elems...).String()
+	content := md.Doc(elems...).String()
+	key := strings.Join(append(parents, pkg.Name+".md"), "-")
+	if root {
+		key = "README.md"
+	}
+	out := map[string]string{
+		key: content,
+	}
+
+	if len(pkg.Sub) != 0 {
+		for _, s := range pkg.Sub {
+			path := append(parents, pkg.Name)
+			if root {
+				path = parents
+			}
+			got := render(s, path, false)
+			for k, v := range got {
+				out[k] = v
+			}
+		}
+	}
+
+	return out
 }
 
 func renderIndex(api docsonnet.Fields, path string, s *slug.Slugger) []md.Elem {
