@@ -22,11 +22,11 @@ local lib = {
         old { [key]: api[key] }
       else if std.isObject(api[key]) && std.length(std.objectFields(api[key])) > 0 then
         old { ['#' + key]+: { object+: {
-          fields: api[key],
+          fields: $.fillObjects(api[key]),
         } } }
       else old;
 
-    std.foldl(aux, std.objectFields(api), {}),
+    std.prune(std.foldl(aux, std.objectFields(api), {})),
 
   // clean removes all hashes from field names
   clean(api):: {
@@ -38,7 +38,7 @@ local lib = {
 
   cleanNonObj(api):: {
     [key]:
-      if std.startsWith(key, "#") then api[key]
+      if std.startsWith(key, '#') then api[key]
       else if std.isObject(api[key]) then $.cleanNonObj(api[key])
       else api[key]
     for key in std.objectFieldsAll(api)
@@ -56,4 +56,4 @@ local lib = {
     self.clean(filled),
 };
 
-lib.package(std.extVar("main"))
+lib.package(std.extVar('main'))
