@@ -7,6 +7,7 @@ require (
 	github.com/google/go-cmp v0.4.0
 	github.com/google/go-jsonnet v0.15.0
 	github.com/markbates/pkger v0.15.1
+	github.com/sanity-io/litter v1.2.0
 	github.com/stretchr/testify v1.4.0
 	gopkg.in/yaml.v2 v2.2.7
 )
