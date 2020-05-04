@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/google/go-jsonnet"
 	"github.com/sh0rez/docsonnet/pkg/docsonnet"
@@ -16,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(string(data))
+	// fmt.Println(string(data))
 
 	var d DS
 	if err := json.Unmarshal(data, &d); err != nil {
@@ -32,20 +33,85 @@ func main() {
 	fmt.Println(string(out))
 }
 
+// load docsonnet
+//
+// Data assumptions:
+// - only map[string]interface{} and docsonnet fields
+// - docsonnet fields (#...) coming first
 func load(d DS) docsonnet.Package {
+	start := time.Now()
+
 	pkg := d.Package()
 	pkg.API = make(docsonnet.Fields)
+	pkg.Sub = make(map[string]docsonnet.Package)
 
 	for k, v := range d {
-		if k == "#" || !strings.HasPrefix(k, "#") {
+		if k == "#" {
 			continue
 		}
 
+		f := v.(map[string]interface{})
+
+		// docsonnet field
 		name := strings.TrimPrefix(k, "#")
-		pkg.API[name] = loadField(name, v.(map[string]interface{}), d)
+		if strings.HasPrefix(k, "#") {
+			pkg.API[name] = loadField(name, f, d)
+			continue
+		}
+
+		// non-docsonnet
+		// subpackage?
+		if _, ok := f["#"]; ok {
+			p := load(DS(f))
+			pkg.Sub[p.Name] = p
+			continue
+		}
+
+		// non-annotated nested?
+		// try to load, but skip when already loaded as annotated above
+		if nested, ok := loadNested(name, f); ok && !fieldsHas(pkg.API, name) {
+			pkg.API[name] = *nested
+			continue
+		}
 	}
 
+	fmt.Println("load", time.Since(start))
 	return pkg
+}
+
+func fieldsHas(f docsonnet.Fields, key string) bool {
+	_, b := f[key]
+	return b
+}
+
+func loadNested(name string, msi map[string]interface{}) (*docsonnet.Field, bool) {
+	out := docsonnet.Object{
+		Name:   name,
+		Fields: make(docsonnet.Fields),
+	}
+
+	ok := false
+	for k, v := range msi {
+		f := v.(map[string]interface{})
+		n := strings.TrimPrefix(k, "#")
+
+		if !strings.HasPrefix(k, "#") {
+			if l, ok := loadNested(k, f); ok {
+				out.Fields[n] = *l
+			}
+			continue
+		}
+
+		ok = true
+		l := loadField(n, f, msi)
+		out.Fields[n] = l
+	}
+
+	if !ok {
+		return nil, false
+	}
+
+	return &docsonnet.Field{Object: &out}, true
 }
 
 func loadField(name string, field map[string]interface{}, parent map[string]interface{}) docsonnet.Field {
@@ -115,7 +181,12 @@ func loadObj(name string, msi map[string]interface{}, parent map[string]interfac
 type DS map[string]interface{}
 
 func (d DS) Package() docsonnet.Package {
-	pkg := d["#"].(map[string]interface{})
+	hash, ok := d["#"]
+	if !ok {
+		log.Fatalln("Package declaration missing")
+	}
+
+	pkg := hash.(map[string]interface{})
 	return docsonnet.Package{
 		Help:   pkg["help"].(string),
 		Name:   pkg["name"].(string),
@@ -124,6 +195,8 @@ func (d DS) Package() docsonnet.Package {
 }
 
 func eval() ([]byte, error) {
+	start := time.Now()
+
 	vm := jsonnet.MakeVM()
 	vm.Importer(&jsonnet.FileImporter{JPaths: []string{".."}})
 	data, err := ioutil.ReadFile("fast.libsonnet")
@@ -135,5 +208,7 @@ func eval() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("eval:", time.Since(start))
 	return []byte(out), nil
 }
