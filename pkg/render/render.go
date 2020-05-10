@@ -15,6 +15,7 @@ func Render(pkg docsonnet.Package) map[string]string {
 }
 
 func render(pkg docsonnet.Package, parents []string, root bool) map[string]string {
+	fmt.Println("render", pkg.Name)
 	link := "/" + strings.Join(append(parents, pkg.Name), "/")
 	if root {
 		link = "/"
