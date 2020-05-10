@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/google/go-jsonnet"
 	"github.com/sh0rez/docsonnet/pkg/docsonnet"
+	"github.com/sh0rez/docsonnet/pkg/render"
 )
 
 func main() {
@@ -25,12 +27,15 @@ func main() {
 	}
 
 	pkg := load(d)
-	out, err := json.MarshalIndent(pkg, "", "  ")
-	if err != nil {
-		log.Fatalln(err)
-	}
 
-	fmt.Println(string(out))
+	fmt.Println("render")
+	res := render.Render(pkg)
+	for k, v := range res {
+		fmt.Println(k)
+		if err := ioutil.WriteFile(filepath.Join("docs", k), []byte(v), 0644); err != nil {
+			log.Fatalln(err)
+		}
+	}
 }
 
 // load docsonnet
@@ -42,6 +47,8 @@ func load(d DS) docsonnet.Package {
 	start := time.Now()
 
 	pkg := d.Package()
+	fmt.Println("load", pkg.Name)
+
 	pkg.API = make(docsonnet.Fields)
 	pkg.Sub = make(map[string]docsonnet.Package)
 
@@ -75,7 +82,7 @@ func load(d DS) docsonnet.Package {
 		}
 	}
 
-	fmt.Println("load", time.Since(start))
+	fmt.Println("done load", pkg.Name, time.Since(start))
 	return pkg
 }
 
@@ -150,6 +157,14 @@ func loadArgs(is []interface{}) []docsonnet.Argument {
 	return args
 }
 
+func fieldNames(msi map[string]interface{}) []string {
+	out := make([]string, 0, len(msi))
+	for k := range msi {
+		out = append(out, k)
+	}
+	return out
+}
+
 func loadObj(name string, msi map[string]interface{}, parent map[string]interface{}) docsonnet.Field {
 	obj := docsonnet.Object{
 		Name:   name,
@@ -161,18 +176,22 @@ func loadObj(name string, msi map[string]interface{}, parent map[string]interfac
 	var iChilds interface{}
 	var ok bool
 	if iChilds, ok = parent[name]; !ok {
-		fmt.Println("aborting, no", name)
+		fmt.Println("aborting, no", name, strings.Join(fieldNames(parent), ", "))
 		return docsonnet.Field{Object: &obj}
 	}
 
 	childs := iChilds.(map[string]interface{})
 	for k, v := range childs {
+		name := strings.TrimPrefix(k, "#")
+		f := v.(map[string]interface{})
 		if !strings.HasPrefix(k, "#") {
+			if l, ok := loadNested(k, f); ok {
+				obj.Fields[name] = *l
+			}
 			continue
 		}
 
-		name := strings.TrimPrefix(k, "#")
-		obj.Fields[name] = loadField(name, v.(map[string]interface{}), msi)
+		obj.Fields[name] = loadField(name, f, childs)
 	}
 
 	return docsonnet.Field{Object: &obj}
@@ -195,6 +214,7 @@ func (d DS) Package() docsonnet.Package {
 }
 
 func eval() ([]byte, error) {
+	fmt.Println("eval start")
 	start := time.Now()
 
 	vm := jsonnet.MakeVM()

@@ -32,18 +32,22 @@ func Load(filename string) (*Package, error) {
 
 	// invoke load.libsonnet
 	vm.ExtCode("main", fmt.Sprintf(`(import "%s")`, filename))
+
+	log.Println("evaluating Jsonnet")
 	data, err := vm.EvaluateSnippet("load.libsonnet", string(load))
 	if err != nil {
 		return nil, err
 	}
 
+	log.Println("parsing result")
 	// parse the result
-	var d Package
+	var d DS
 	if err := json.Unmarshal([]byte(data), &d); err != nil {
 		log.Fatalln(err)
 	}
 
-	return &d, nil
+	p := fastLoad(d)
+	return &p, nil
 }
 
 // importer wraps jsonnet.FileImporter, to statically provide load.libsonnet,
