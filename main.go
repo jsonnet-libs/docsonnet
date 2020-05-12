@@ -1,10 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"path/filepath"
 
 	"github.com/go-clix/cli"
 
@@ -20,19 +19,27 @@ func main() {
 		Short: "Utility to parse and transform Jsonnet code that uses the docsonnet extension",
 	}
 
-	output := root.Flags().StringP("output", "o", "docs", "directory to write the .md files to")
-	root.Run = func(cmd *cli.Command, args []string) error {
-		pkg, err := docsonnet.Load(args[0])
-		if err != nil {
-			return err
-		}
+	dir := root.Flags().StringP("output", "o", "docs", "directory to write the .md files to")
+	outputMd := root.Flags().Bool("md", true, "render as markdown files")
+	outputJSON := root.Flags().Bool("json", false, "print loaded docsonnet as JSON")
 
-		data := render.Render(*pkg)
-		for k, v := range data {
-			fmt.Println(k)
-			if err := ioutil.WriteFile(filepath.Join(*output, k), []byte(v), 0644); err != nil {
+	root.Run = func(cmd *cli.Command, args []string) error {
+		file := args[0]
+
+		switch {
+		case *outputJSON:
+			model, err := docsonnet.Load(file)
+			if err != nil {
 				return err
 			}
+			data, err := json.MarshalIndent(model, "", "  ")
+			if err != nil {
+				return err
+			}
+
+			fmt.Println(string(data))
+		case *outputMd:
+			return render.To(file, *dir)
 		}
 
 		return nil

@@ -15,7 +15,6 @@ func Render(pkg docsonnet.Package) map[string]string {
 }
 
 func render(pkg docsonnet.Package, parents []string, root bool) map[string]string {
-	fmt.Println("render", pkg.Name)
 	link := "/" + strings.Join(append(parents, pkg.Name), "/")
 	if root {
 		link = "/"
@@ -27,20 +26,32 @@ func render(pkg docsonnet.Package, parents []string, root bool) map[string]strin
 			"permalink": link,
 		}),
 		md.Headline(1, "package "+pkg.Name),
-		md.CodeBlock("jsonnet", fmt.Sprintf(`local %s = import "%s"`, pkg.Name, pkg.Import)),
-		md.Text(pkg.Help),
 	}
+	if pkg.Import != "" {
+		elems = append(elems, md.CodeBlock("jsonnet", fmt.Sprintf(`local %s = import "%s"`, pkg.Name, pkg.Import)))
+	}
+	elems = append(elems, md.Text(pkg.Help))
 
 	if len(pkg.Sub) > 0 {
 		elems = append(elems, md.Headline(2, "Subpackages"))
-		var items []md.Elem
+
+		keys := make([]string, 0, len(pkg.Sub))
 		for _, s := range pkg.Sub {
+			keys = append(keys, s.Name)
+		}
+		sort.Strings(keys)
+
+		var items []md.Elem
+		for _, k := range keys {
+			s := pkg.Sub[k]
+
 			link := strings.Join(append(parents, pkg.Name, s.Name), "-")
 			if root {
 				link = strings.Join(append(parents, s.Name), "-")
 			}
 			items = append(items, md.Link(md.Text(s.Name), link+".md"))
 		}
+
 		elems = append(elems, md.List(items...))
 	}
 

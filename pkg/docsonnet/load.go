@@ -33,13 +33,13 @@ func Load(filename string) (*Package, error) {
 	// invoke load.libsonnet
 	vm.ExtCode("main", fmt.Sprintf(`(import "%s")`, filename))
 
-	log.Println("evaluating Jsonnet")
+	log.Println("Evaluating Jsonnet")
 	data, err := vm.EvaluateSnippet("load.libsonnet", string(load))
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("parsing result")
+	log.Println("Transforming result")
 	// parse the result
 	var d DS
 	if err := json.Unmarshal([]byte(data), &d); err != nil {

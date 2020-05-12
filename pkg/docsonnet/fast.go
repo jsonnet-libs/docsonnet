@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 )
 
 // load docsonnet
@@ -13,10 +12,7 @@ import (
 // - only map[string]interface{} and fields
 // - fields (#...) coming first
 func fastLoad(d DS) Package {
-	start := time.Now()
-
 	pkg := d.Package()
-	fmt.Println("load", pkg.Name)
 
 	pkg.API = make(Fields)
 	pkg.Sub = make(map[string]Package)
@@ -51,7 +47,6 @@ func fastLoad(d DS) Package {
 		}
 	}
 
-	fmt.Println("done load", pkg.Name, time.Since(start))
 	return pkg
 }
 
