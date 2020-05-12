@@ -71,11 +71,19 @@
   // T contains constants for the Jsonnet types
   T:: {
     string: 'string',
+
     number: 'number',
-    bool: 'bool',
+    int: self.number,
+    integer: self.number,
+
+    boolean: 'bool',
+    bool: self.boolean,
+
     object: 'object',
     array: 'array',
     any: 'any',
+
     func: 'function',
+    'function': self.func,
   },
 }
