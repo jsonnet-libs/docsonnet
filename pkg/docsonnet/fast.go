@@ -11,7 +11,7 @@ import (
 // Data assumptions:
 // - only map[string]interface{} and fields
 // - fields (#...) coming first
-func fastLoad(d DS) Package {
+func fastLoad(d ds) Package {
 	pkg := d.Package()
 
 	pkg.API = make(Fields)
@@ -34,7 +34,7 @@ func fastLoad(d DS) Package {
 		// non-docsonnet
 		// subpackage?
 		if _, ok := f["#"]; ok {
-			p := fastLoad(DS(f))
+			p := fastLoad(ds(f))
 			pkg.Sub[p.Name] = p
 			continue
 		}
@@ -94,7 +94,7 @@ func loadField(name string, field map[string]interface{}, parent map[string]inte
 		return loadObj(name, iobj.(map[string]interface{}), parent)
 	}
 
-	panic("field lacking {function | object}")
+	panic(fmt.Sprintf("field %s lacking {function | object}", name))
 }
 
 func loadFn(name string, msi map[string]interface{}) Field {
@@ -161,9 +161,9 @@ func loadObj(name string, msi map[string]interface{}, parent map[string]interfac
 	return Field{Object: &obj}
 }
 
-type DS map[string]interface{}
+type ds map[string]interface{}
 
-func (d DS) Package() Package {
+func (d ds) Package() Package {
 	hash, ok := d["#"]
 	if !ok {
 		log.Fatalln("Package declaration missing")

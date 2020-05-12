@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"path"
 	"sort"
 	"strings"
 
@@ -10,14 +11,18 @@ import (
 	"github.com/sh0rez/docsonnet/pkg/slug"
 )
 
-func Render(pkg docsonnet.Package) map[string]string {
-	return render(pkg, nil, true)
+type Opts struct {
+	URLPrefix string
 }
 
-func render(pkg docsonnet.Package, parents []string, root bool) map[string]string {
-	link := "/" + strings.Join(append(parents, pkg.Name), "/")
+func Render(pkg docsonnet.Package, opts Opts) map[string]string {
+	return render(pkg, nil, true, opts.URLPrefix)
+}
+
+func render(pkg docsonnet.Package, parents []string, root bool, urlPrefix string) map[string]string {
+	link := path.Join("/", urlPrefix, strings.Join(append(parents, pkg.Name), "/"))
 	if root {
-		link = "/"
+		link = path.Join("/", urlPrefix)
 	}
 
 	// head
@@ -83,7 +88,7 @@ func render(pkg docsonnet.Package, parents []string, root bool) map[string]strin
 			if root {
 				path = parents
 			}
-			got := render(s, path, false)
+			got := render(s, path, false, urlPrefix)
 			for k, v := range got {
 				out[k] = v
 			}

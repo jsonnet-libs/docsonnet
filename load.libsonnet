@@ -12,6 +12,8 @@ local lib = {
     local aux(old, key) =
       if !std.isObject(pkg[key]) then
         old
+      else if std.objectHasAll(pkg, '#' + key) && pkg['#' + key] == 'ignore' then
+        old
       else if std.startsWith(key, '#') then
         old { [key]: pkg[key] }
       else if self.scan(pkg[key]) then
@@ -20,5 +22,6 @@ local lib = {
 
     std.foldl(aux, std.objectFieldsAll(pkg), {}),
 };
+
 
 lib.load(std.extVar('main'))

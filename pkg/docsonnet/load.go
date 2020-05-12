@@ -10,8 +10,22 @@ import (
 	"github.com/markbates/pkger"
 )
 
-// Load extracts docsonnet data from the given Jsonnet document
+// Load extracts and transforms the docsonnet data in `filename`, returning the
+// top level docsonnet package.
 func Load(filename string) (*Package, error) {
+	data, err := Extract(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return Transform([]byte(data))
+}
+
+// Extract parses the Jsonnet file at `filename`, extracting all docsonnet related
+// information, exactly as they appear in Jsonnet. Keep in mind this
+// representation is usually not suitable for any use, use `Transform` to
+// convert it to the familiar docsonnet data model.
+func Extract(filename string) ([]byte, error) {
 	// get load.libsonnet from embedded data
 	file, err := pkger.Open("/load.libsonnet")
 	if err != nil {
@@ -33,15 +47,18 @@ func Load(filename string) (*Package, error) {
 	// invoke load.libsonnet
 	vm.ExtCode("main", fmt.Sprintf(`(import "%s")`, filename))
 
-	log.Println("Evaluating Jsonnet")
 	data, err := vm.EvaluateSnippet("load.libsonnet", string(load))
 	if err != nil {
 		return nil, err
 	}
 
-	log.Println("Transforming result")
-	// parse the result
-	var d DS
+	return []byte(data), nil
+}
+
+// Transform converts the raw result of `Extract` to the actual docsonnet object
+// model `*docsonnet.Package`.
+func Transform(data []byte) (*Package, error) {
+	var d ds
 	if err := json.Unmarshal([]byte(data), &d); err != nil {
 		log.Fatalln(err)
 	}
