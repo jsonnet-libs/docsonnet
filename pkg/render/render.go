@@ -1,11 +1,13 @@
 package render
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"sort"
 	"strings"
 
+	"github.com/google/go-jsonnet/formatter"
 	"github.com/sh0rez/docsonnet/pkg/docsonnet"
 	"github.com/sh0rez/docsonnet/pkg/md"
 	"github.com/sh0rez/docsonnet/pkg/slug"
@@ -23,6 +25,9 @@ func render(pkg docsonnet.Package, parents []string, root bool, urlPrefix string
 	link := path.Join("/", urlPrefix, strings.Join(append(parents, pkg.Name), "/"))
 	if root {
 		link = path.Join("/", urlPrefix)
+	}
+	if !strings.HasSuffix(link, "/") {
+		link = link + "/"
 	}
 
 	// head
@@ -146,20 +151,37 @@ func renderApi(api docsonnet.Fields, path string) []md.Elem {
 }
 
 func sortFields(api docsonnet.Fields) []string {
-	keys := make([]string, len(api))
+	keys := make([]string, 0, len(api))
 	for k := range api {
 		keys = append(keys, k)
 	}
 
+	aFn := func(a, b string) bool {
+		return api[a].Function != nil && api[b].Function == nil
+	}
+	aNew := func(a, b string) bool {
+		a = strings.ToLower(a)
+		b = strings.ToLower(b)
+
+		return strings.HasPrefix(a, "new") && !strings.HasPrefix(b, "new")
+	}
+
 	sort.Slice(keys, func(i, j int) bool {
-		iK, jK := keys[i], keys[j]
-		if api[iK].Function != nil && api[jK].Function == nil {
+		a, b := keys[i], keys[j]
+
+		if aNew(a, b) {
 			return true
-		}
-		if api[iK].Function == nil && api[jK].Function != nil {
+		} else if aNew(b, a) {
 			return false
 		}
-		return iK < jK
+
+		if aFn(a, b) {
+			return true
+		} else if aFn(b, a) {
+			return false
+		}
+
+		return a < b
 	})
 
 	return keys
@@ -170,10 +192,30 @@ func renderParams(a []docsonnet.Argument) string {
 	for _, a := range a {
 		arg := a.Name
 		if a.Default != nil {
-			arg = fmt.Sprintf("%s=%v", arg, a.Default)
+			arg = fmt.Sprintf("%s=%v", arg, jsonParam(a.Default))
 		}
 		args = append(args, arg)
 	}
 
 	return strings.Join(args, ", ")
+}
+
+func jsonParam(i interface{}) string {
+
+	d, err := json.Marshal(i)
+	if err != nil {
+		panic(err)
+	}
+
+	s, err := formatter.Format("(jsonParam)", string(d), formatter.Options{
+		PadObjects:       false,
+		PadArrays:        false,
+		PrettyFieldNames: true,
+		StringStyle:      formatter.StringStyleSingle,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return strings.TrimSpace(s)
 }
