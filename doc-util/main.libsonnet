@@ -51,6 +51,11 @@
     withHelp(help):: { 'function'+: {
       help: help,
     } },
+
+    '#withArgs': d.fn('The `withArgs` modifier overrides the arguments of that function', [d.arg('args', d.T.array)]),
+    withArgs(args):: { 'function'+: {
+      args: args,
+    } },
   },
 
   '#fn': self.func['#new'] + d.func.withHelp('`fn` is a shorthand for `func.new`'),
@@ -82,6 +87,9 @@
     object: 'object',
     array: 'array',
     any: 'any',
+
+    'null': "null",
+    nil: self["null"],
 
     func: 'function',
     'function': self.func,

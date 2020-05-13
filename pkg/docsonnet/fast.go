@@ -98,9 +98,13 @@ func loadField(name string, field map[string]interface{}, parent map[string]inte
 }
 
 func loadFn(name string, msi map[string]interface{}) Field {
+	h, ok := msi["help"].(string)
+	if !ok {
+		h = ""
+	}
 	fn := Function{
 		Name: name,
-		Help: msi["help"].(string),
+		Help: h,
 	}
 	if args, ok := msi["args"]; ok {
 		fn.Args = loadArgs(args.([]interface{}))
