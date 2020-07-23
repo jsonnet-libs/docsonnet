@@ -41,7 +41,8 @@ type Value struct {
 	Name string `json:"-"`
 	Help string `json:"help"`
 
-	Type Type `json:"type"`
+	Type    Type        `json:"type"`
+	Default interface{} `json:"default"`
 }
 
 // Type is a Jsonnet type

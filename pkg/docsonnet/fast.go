@@ -109,13 +109,14 @@ func loadValue(name string, msi map[string]interface{}) Field {
 
 	t, ok := msi["type"].(string)
 	if !ok {
-
+		panic(fmt.Sprintf("value %s lacking type information", name))
 	}
 
 	v := Value{
-		Name: name,
-		Help: h,
-		Type: Type(t),
+		Name:    name,
+		Help:    h,
+		Type:    Type(t),
+		Default: msi["default"],
 	}
 
 	return Field{Value: &v}

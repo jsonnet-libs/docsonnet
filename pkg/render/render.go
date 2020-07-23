@@ -154,6 +154,16 @@ func renderApi(api docsonnet.Fields, path string) []md.Elem {
 			val := v.Value
 			elems = append(elems,
 				md.Headline(3, fmt.Sprintf("%s %s%s", val.Type, path, val.Name)),
+			)
+
+			if val.Default != nil {
+				elems = append(elems, md.Paragraph(
+					md.Italic(md.Text("Default value: ")),
+					md.Code(md.Text(fmt.Sprint(val.Default))),
+				))
+			}
+
+			elems = append(elems,
 				md.Text(val.Help),
 			)
 		}
