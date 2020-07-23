@@ -73,6 +73,14 @@
   '#arg': self.argument['#new'] + self.func.withHelp('`arg` is a shorthand for `argument.new`'),
   arg:: self.argument.new,
 
+  value:: {
+    new(type, help=''): { 'value': {
+      help: help,
+      type: type,
+    } }
+  },
+  val: self.value.new,
+
   // T contains constants for the Jsonnet types
   T:: {
     string: 'string',

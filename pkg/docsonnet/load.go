@@ -10,10 +10,14 @@ import (
 	"github.com/markbates/pkger"
 )
 
+type Opts struct {
+	JPath []string
+}
+
 // Load extracts and transforms the docsonnet data in `filename`, returning the
 // top level docsonnet package.
-func Load(filename string) (*Package, error) {
-	data, err := Extract(filename)
+func Load(filename string, opts Opts) (*Package, error) {
+	data, err := Extract(filename, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +29,7 @@ func Load(filename string) (*Package, error) {
 // information, exactly as they appear in Jsonnet. Keep in mind this
 // representation is usually not suitable for any use, use `Transform` to
 // convert it to the familiar docsonnet data model.
-func Extract(filename string) ([]byte, error) {
+func Extract(filename string, opts Opts) ([]byte, error) {
 	// get load.libsonnet from embedded data
 	file, err := pkger.Open("/load.libsonnet")
 	if err != nil {
@@ -38,7 +42,7 @@ func Extract(filename string) ([]byte, error) {
 
 	// setup Jsonnet vm
 	vm := jsonnet.MakeVM()
-	importer, err := newImporter()
+	importer, err := newImporter(opts.JPath)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +78,7 @@ type importer struct {
 	util jsonnet.Contents
 }
 
-func newImporter() (*importer, error) {
+func newImporter(paths []string) (*importer, error) {
 	file, err := pkger.Open("/doc-util/main.libsonnet")
 	if err != nil {
 		return nil, err
@@ -85,7 +89,7 @@ func newImporter() (*importer, error) {
 	}
 
 	return &importer{
-		fi:   jsonnet.FileImporter{},
+		fi:   jsonnet.FileImporter{JPaths: paths},
 		util: jsonnet.MakeContents(string(load)),
 	}, nil
 }

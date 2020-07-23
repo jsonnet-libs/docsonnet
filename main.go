@@ -24,12 +24,13 @@ func main() {
 	outputJSON := root.Flags().Bool("json", false, "print loaded docsonnet as JSON")
 	outputRaw := root.Flags().Bool("raw", false, "don't transform, dump raw eval result")
 	urlPrefix := root.Flags().String("urlPrefix", "/", "url-prefix for frontmatter")
+	jpath := root.Flags().StringSliceP("jpath", "J", []string{"vendor"}, "Specify an additional library search dir (right-most wins)")
 
 	root.Run = func(cmd *cli.Command, args []string) error {
 		file := args[0]
 
 		log.Println("Extracting from Jsonnet")
-		data, err := docsonnet.Extract(file)
+		data, err := docsonnet.Extract(file, docsonnet.Opts{JPath: *jpath})
 		if err != nil {
 			log.Fatalln("Extracting:", err)
 		}
