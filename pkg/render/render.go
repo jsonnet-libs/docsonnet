@@ -119,6 +119,11 @@ func renderIndex(api docsonnet.Fields, path string, s *slug.Slugger) []md.Elem {
 			link := "#" + s.Slug("obj "+path+obj.Name)
 			elems = append(elems, md.Link(md.Code(name), link))
 			elems = append(elems, md.List(renderIndex(obj.Fields, path+obj.Name+".", s)...))
+		case v.Value != nil:
+			val := v.Value
+			name := md.Text(fmt.Sprintf("%s %s%s", val.Type, path, val.Name))
+			link := "#" + s.Slug(name.String())
+			elems = append(elems, md.Link(md.Code(name), link))
 		}
 	}
 	return elems
@@ -144,6 +149,23 @@ func renderApi(api docsonnet.Fields, path string) []md.Elem {
 				md.Text(obj.Help),
 			)
 			elems = append(elems, renderApi(obj.Fields, path+obj.Name+".")...)
+
+		case v.Value != nil:
+			val := v.Value
+			elems = append(elems,
+				md.Headline(3, fmt.Sprintf("%s %s%s", val.Type, path, val.Name)),
+			)
+
+			if val.Default != nil {
+				elems = append(elems, md.Paragraph(
+					md.Italic(md.Text("Default value: ")),
+					md.Code(md.Text(fmt.Sprint(val.Default))),
+				))
+			}
+
+			elems = append(elems,
+				md.Text(val.Help),
+			)
 		}
 	}
 

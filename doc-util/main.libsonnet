@@ -73,6 +73,18 @@
   '#arg': self.argument['#new'] + self.func.withHelp('`arg` is a shorthand for `argument.new`'),
   arg:: self.argument.new,
 
+  "#value": d.obj("Utilities for documenting plain Jsonnet values (primitives)"),
+  value:: {
+    "#new": d.fn("new creates a new object of given type, optionally with description and default value", [d.arg("type", d.T.string), d.arg("help", d.T.string), d.arg("default", d.T.any)]),
+    new(type, help='', default=null): { 'value': {
+      help: help,
+      type: type,
+      default: default,
+    } }
+  },
+  '#val': self.value['#new'] + self.func.withHelp('`val` is a shorthand for `value.new`'),
+  val: self.value.new,
+
   // T contains constants for the Jsonnet types
   T:: {
     string: 'string',

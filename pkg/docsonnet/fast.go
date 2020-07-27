@@ -94,7 +94,32 @@ func loadField(name string, field map[string]interface{}, parent map[string]inte
 		return loadObj(name, iobj.(map[string]interface{}), parent)
 	}
 
-	panic(fmt.Sprintf("field %s lacking {function | object}", name))
+	if vobj, ok := field["value"]; ok {
+		return loadValue(name, vobj.(map[string]interface{}))
+	}
+
+	panic(fmt.Sprintf("field %s lacking {function | object | value}", name))
+}
+
+func loadValue(name string, msi map[string]interface{}) Field {
+	h, ok := msi["help"].(string)
+	if !ok {
+		h = ""
+	}
+
+	t, ok := msi["type"].(string)
+	if !ok {
+		panic(fmt.Sprintf("value %s lacking type information", name))
+	}
+
+	v := Value{
+		Name:    name,
+		Help:    h,
+		Type:    Type(t),
+		Default: msi["default"],
+	}
+
+	return Field{Value: &v}
 }
 
 func loadFn(name string, msi map[string]interface{}) Field {

@@ -18,6 +18,7 @@ local d = import "github.com/sh0rez/docsonnet/doc-util"
 * [`fn fn(help, args)`](#fn-fn)
 * [`fn obj(help, fields)`](#fn-obj)
 * [`fn pkg(name, url, help)`](#fn-pkg)
+* [`fn val(type, help, default)`](#fn-val)
 * [`obj argument`](#obj-argument)
   * [`fn new(name, type, default)`](#fn-argumentnew)
 * [`obj func`](#obj-func)
@@ -29,6 +30,8 @@ local d = import "github.com/sh0rez/docsonnet/doc-util"
   * [`fn withFields(fields)`](#fn-objectwithfields)
 * [`obj package`](#obj-package)
   * [`fn new(name, url, help)`](#fn-packagenew)
+* [`obj value`](#obj-value)
+  * [`fn new(type, help, default)`](#fn-valuenew)
 
 ## Fields
 
@@ -63,6 +66,14 @@ pkg(name, url, help)
 ```
 
 `new` is a shorthand for `package.new`
+
+### fn val
+
+```ts
+val(type, help, default)
+```
+
+`val` is a shorthand for `value.new`
 
 ## obj argument
 
@@ -135,3 +146,15 @@ new(name, url, help)
 ```
 
 new creates a new package with given `name`, `import` URL and `help` text
+
+## obj value
+
+Utilities for documenting plain Jsonnet values (primitives)
+
+### fn value.new
+
+```ts
+new(type, help, default)
+```
+
+new creates a new object of given type, optionally with description and default value
