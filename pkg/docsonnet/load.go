@@ -94,9 +94,16 @@ func newImporter(paths []string) (*importer, error) {
 	}, nil
 }
 
+var docUtilPaths = []string{
+	"doc-util/main.libsonnet",
+	"github.com/sh0rez/docsonnet/doc-util/main.libsonnet",
+}
+
 func (i *importer) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
-	if importedPath == "doc-util/main.libsonnet" {
-		return i.util, "<internal>", nil
+	for _, p := range docUtilPaths {
+		if importedPath == p {
+			return i.util, "<internal>", nil
+		}
 	}
 
 	return i.fi.Import(importedFrom, importedPath)
