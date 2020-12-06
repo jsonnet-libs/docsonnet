@@ -11,13 +11,16 @@ import (
 	"github.com/sh0rez/docsonnet/pkg/render"
 )
 
+var Version = "dev"
+
 func main() {
 	log.SetFlags(0)
 
 	root := &cli.Command{
-		Use:   "docsonnet <file>",
-		Short: "Utility to parse and transform Jsonnet code that uses the docsonnet extension",
-		Args:  cli.ArgsExact(1),
+		Use:     "docsonnet <file>",
+		Short:   "Utility to parse and transform Jsonnet code that uses the docsonnet extension",
+		Args:    cli.ArgsExact(1),
+		Version: Version,
 	}
 
 	dir := root.Flags().StringP("output", "o", "docs", "directory to write the .md files to")
