@@ -5,7 +5,7 @@ permalink: /
 # package d
 
 ```jsonnet
-local d = import "github.com/sh0rez/docsonnet/doc-util"
+local d = import "github.com/jsonnet-libs/docsonnet/doc-util"
 ```
 
 `doc-util` provides a Jsonnet interface for `docsonnet`,
