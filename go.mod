@@ -1,4 +1,4 @@
-module github.com/sh0rez/docsonnet
+module github.com/jsonnet-libs/docsonnet
 
 go 1.14
 
