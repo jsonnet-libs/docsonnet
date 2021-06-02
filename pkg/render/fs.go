@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sh0rez/docsonnet/pkg/docsonnet"
+	"github.com/jsonnet-libs/docsonnet/pkg/docsonnet"
 )
 
 func To(pkg docsonnet.Package, dir string, opts Opts) (int, error) {

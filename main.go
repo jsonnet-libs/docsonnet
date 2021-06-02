@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-clix/cli"
 
-	"github.com/sh0rez/docsonnet/pkg/docsonnet"
-	"github.com/sh0rez/docsonnet/pkg/render"
+	"github.com/jsonnet-libs/docsonnet/pkg/docsonnet"
+	"github.com/jsonnet-libs/docsonnet/pkg/render"
 )
 
 func main() {

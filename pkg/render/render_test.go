@@ -3,7 +3,7 @@ package render
 import (
 	"testing"
 
-	"github.com/sh0rez/docsonnet/pkg/docsonnet"
+	"github.com/jsonnet-libs/docsonnet/pkg/docsonnet"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -96,7 +96,7 @@ func newImporter(paths []string) (*importer, error) {
 
 var docUtilPaths = []string{
 	"doc-util/main.libsonnet",
-	"github.com/sh0rez/docsonnet/doc-util/main.libsonnet",
+	"github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet",
 }
 
 func (i *importer) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
