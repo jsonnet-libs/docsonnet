@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 FROM base AS builder
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build . -ldflags='-s -w -extldflags "-static"'
 
 FROM alpine:3.12
 COPY --from=builder /app/docsonnet /usr/local/bin
