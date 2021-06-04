@@ -17,7 +17,12 @@ func To(pkg docsonnet.Package, dir string, opts Opts) (int, error) {
 
 	n := 0
 	for k, v := range data {
-		if err := ioutil.WriteFile(filepath.Join(dir, k), []byte(v), 0644); err != nil {
+		fullpath := filepath.Join(dir, k)
+		dir := filepath.Dir(fullpath)
+		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			return n, err
+		}
+		if err := ioutil.WriteFile(fullpath, []byte(v), 0644); err != nil {
 			return n, err
 		}
 		n++

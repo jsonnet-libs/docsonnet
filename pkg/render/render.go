@@ -35,7 +35,7 @@ func render(pkg docsonnet.Package, parents []string, root bool, urlPrefix string
 		md.Frontmatter(map[string]interface{}{
 			"permalink": link,
 		}),
-		md.Headline(1, "package "+pkg.Name),
+		md.Headline(1, strings.Join(append(parents, pkg.Name), ".")),
 	}
 	if pkg.Import != "" {
 		elems = append(elems, md.CodeBlock("jsonnet", fmt.Sprintf(`local %s = import "%s"`, pkg.Name, pkg.Import)))
@@ -43,8 +43,6 @@ func render(pkg docsonnet.Package, parents []string, root bool, urlPrefix string
 	elems = append(elems, md.Text(pkg.Help))
 
 	if len(pkg.Sub) > 0 {
-		elems = append(elems, md.Headline(2, "Subpackages"))
-
 		keys := make([]string, 0, len(pkg.Sub))
 		for _, s := range pkg.Sub {
 			keys = append(keys, s.Name)
@@ -55,11 +53,11 @@ func render(pkg docsonnet.Package, parents []string, root bool, urlPrefix string
 		for _, k := range keys {
 			s := pkg.Sub[k]
 
-			link := strings.Join(append(parents, pkg.Name, s.Name), "-")
-			if root {
-				link = strings.Join(append(parents, s.Name), "-")
+			link := s.Name + ".md"
+			if len(s.Sub) > 0 {
+				link = s.Name + "/index.md"
 			}
-			items = append(items, md.Link(md.Text(s.Name), link+".md"))
+			items = append(items, md.Link(md.Text(s.Name), link))
 		}
 
 		elems = append(elems, md.List(items...))
@@ -79,7 +77,10 @@ func render(pkg docsonnet.Package, parents []string, root bool, urlPrefix string
 	}
 
 	content := md.Doc(elems...).String()
-	key := strings.Join(append(parents, pkg.Name+".md"), "-")
+	key := strings.Join(append(parents, pkg.Name+".md"), "/")
+	if len(pkg.Sub) > 0 {
+		key = strings.Join(append(parents, pkg.Name+"/index.md"), "/")
+	}
 	if root {
 		key = "README.md"
 	}
