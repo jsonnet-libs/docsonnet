@@ -12,8 +12,7 @@ COPY . .
 
 FROM base AS builder
 
-ARG TARGETPLATFORM
-
+ENV GOARCH=$TARGETARCH
 RUN CGO_ENABLED=0 go build -ldflags='-s -w -extldflags "-static"' .
 
 FROM alpine:3.12
