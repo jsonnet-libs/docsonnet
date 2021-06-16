@@ -6,6 +6,14 @@ import (
 	"strings"
 )
 
+type LoadedField struct {
+	DocField        Field
+	HasNestedFields bool
+	NestedFields    *Field
+}
+
+type LoadedFields map[string]*LoadedField
+
 // load docsonnet
 //
 // Data assumptions:
@@ -17,42 +25,44 @@ func fastLoad(d ds) Package {
 	pkg.API = make(Fields)
 	pkg.Sub = make(map[string]Package)
 
+	loadedFields := make(LoadedFields)
+
 	for k, v := range d {
 		if k == "#" {
 			continue
 		}
 
+		n := strings.TrimPrefix(k, "#")
 		f := v.(map[string]interface{})
 
-		// field
-		name := strings.TrimPrefix(k, "#")
-		if strings.HasPrefix(k, "#") {
-			pkg.API[name] = loadField(name, f, d)
-			continue
-		}
-
-		// non-docsonnet
-		// subpackage?
+		// is it a package?
 		if _, ok := f["#"]; ok {
 			p := fastLoad(ds(f))
 			pkg.Sub[p.Name] = p
 			continue
 		}
 
-		// non-annotated nested?
-		// try to load, but skip when already loaded as annotated above
-		if nested, ok := loadNested(name, f); ok && !fieldsHas(pkg.API, name) {
-			pkg.API[name] = *nested
+		// initialize FieldDoc
+		if _, ok := loadedFields[n]; !ok {
+			loadedFields[n] = &LoadedField{}
+		}
+
+		// is it a docstring?
+		if strings.HasPrefix(k, "#") {
+			loadedFields[n].DocField = loadField(n, f, d)
 			continue
+		}
+
+		// is it a regular field? check children...
+		if nested, ok := loadNested(n, f); ok {
+			loadedFields[n].HasNestedFields = true
+			loadedFields[n].NestedFields = nested
 		}
 	}
 
-	return pkg
-}
+	pkg.API = consolidateLoadedFields(loadedFields)
 
-func fieldsHas(f Fields, key string) bool {
-	_, b := f[key]
-	return b
+	return pkg
 }
 
 func loadNested(name string, msi map[string]interface{}) (*Field, bool) {
@@ -61,28 +71,58 @@ func loadNested(name string, msi map[string]interface{}) (*Field, bool) {
 		Fields: make(Fields),
 	}
 
-	ok := false
-	for k, v := range msi {
-		f := v.(map[string]interface{})
-		n := strings.TrimPrefix(k, "#")
+	loadedFields := make(LoadedFields)
 
-		if !strings.HasPrefix(k, "#") {
-			if l, ok := loadNested(k, f); ok {
-				out.Fields[n] = *l
-			}
+	for k, v := range msi {
+		n := strings.TrimPrefix(k, "#")
+		f := v.(map[string]interface{})
+
+		// initialize FieldDoc
+		if _, ok := loadedFields[n]; !ok {
+			loadedFields[n] = &LoadedField{}
+		}
+
+		// is it a docstring?
+		if strings.HasPrefix(k, "#") {
+			loadedFields[n].DocField = loadField(n, f, msi)
 			continue
 		}
 
-		ok = true
-		l := loadField(n, f, msi)
-		out.Fields[n] = l
+		// is it a regular field? check children...
+		if nested, ok := loadNested(n, f); ok {
+			loadedFields[n].HasNestedFields = true
+			loadedFields[n].NestedFields = nested
+		}
 	}
 
-	if !ok {
-		return nil, false
-	}
+	out.Fields = consolidateLoadedFields(loadedFields)
 
 	return &Field{Object: &out}, true
+}
+
+func consolidateLoadedFields(loadedFields LoadedFields) Fields {
+	fields := make(Fields)
+	for k, v := range loadedFields {
+		// non-annoted but has childs, only add childs
+		if v.DocField == (Field{}) && v.HasNestedFields {
+			fields[k] = *v.NestedFields
+			continue
+		}
+
+		// annotated and has chidls, add childs to docfield
+		if v.DocField.Object != nil && v.HasNestedFields {
+			v.DocField.Object.Name = k
+			for name, child := range v.NestedFields.Object.Fields {
+				v.DocField.Object.Fields[name] = child
+			}
+		}
+
+		// return non-empty docfield
+		if v.DocField != (Field{}) {
+			fields[k] = v.DocField
+		}
+	}
+	return fields
 }
 
 func loadField(name string, field map[string]interface{}, parent map[string]interface{}) Field {
@@ -163,28 +203,6 @@ func loadObj(name string, msi map[string]interface{}, parent map[string]interfac
 		Name:   name,
 		Help:   msi["help"].(string),
 		Fields: make(Fields),
-	}
-
-	// look for children in same key without #
-	var iChilds interface{}
-	var ok bool
-	if iChilds, ok = parent[name]; !ok {
-		fmt.Println("aborting, no", name, strings.Join(fieldNames(parent), ", "))
-		return Field{Object: &obj}
-	}
-
-	childs := iChilds.(map[string]interface{})
-	for k, v := range childs {
-		name := strings.TrimPrefix(k, "#")
-		f := v.(map[string]interface{})
-		if !strings.HasPrefix(k, "#") {
-			if l, ok := loadNested(k, f); ok {
-				obj.Fields[name] = *l
-			}
-			continue
-		}
-
-		obj.Fields[name] = loadField(name, f, childs)
 	}
 
 	return Field{Object: &obj}
