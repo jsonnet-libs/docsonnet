@@ -22,37 +22,34 @@ func fastLoad(d ds) Package {
 			continue
 		}
 
+		n := strings.TrimPrefix(k, "#")
 		f := v.(map[string]interface{})
 
-		// field
-		name := strings.TrimPrefix(k, "#")
+		// is it a docstring?
 		if strings.HasPrefix(k, "#") {
-			pkg.API[name] = loadField(name, f, d)
+			pkg.API[n] = loadField(n, f, d)
 			continue
 		}
 
-		// non-docsonnet
-		// subpackage?
+		// is it a package?
 		if _, ok := f["#"]; ok {
 			p := fastLoad(ds(f))
 			pkg.Sub[p.Name] = p
 			continue
 		}
 
-		// non-annotated nested?
-		// try to load, but skip when already loaded as annotated above
-		if nested, ok := loadNested(name, f); ok && !fieldsHas(pkg.API, name) {
-			pkg.API[name] = *nested
-			continue
+		// is it a regular field? check nested...
+		if nested, ok := loadNested(n, f); ok && !hasDocstring(n, d) {
+			pkg.API[n] = *nested
 		}
 	}
 
 	return pkg
 }
 
-func fieldsHas(f Fields, key string) bool {
-	_, b := f[key]
-	return b
+func hasDocstring(key string, msi map[string]interface{}) bool {
+	_, ok := msi["#"+key]
+	return ok
 }
 
 func loadNested(name string, msi map[string]interface{}) (*Field, bool) {
@@ -61,25 +58,20 @@ func loadNested(name string, msi map[string]interface{}) (*Field, bool) {
 		Fields: make(Fields),
 	}
 
-	ok := false
 	for k, v := range msi {
-		f := v.(map[string]interface{})
 		n := strings.TrimPrefix(k, "#")
+		f := v.(map[string]interface{})
 
-		if !strings.HasPrefix(k, "#") {
-			if l, ok := loadNested(k, f); ok {
-				out.Fields[n] = *l
-			}
+		// is it a docstring?
+		if strings.HasPrefix(k, "#") {
+			out.Fields[n] = loadField(n, f, msi)
 			continue
 		}
 
-		ok = true
-		l := loadField(n, f, msi)
-		out.Fields[n] = l
-	}
-
-	if !ok {
-		return nil, false
+		// is it a regular field? check nested...
+		if nested, ok := loadNested(n, f); ok && !hasDocstring(n, msi) {
+			out.Fields[n] = *nested
+		}
 	}
 
 	return &Field{Object: &out}, true
@@ -165,7 +157,7 @@ func loadObj(name string, msi map[string]interface{}, parent map[string]interfac
 		Fields: make(Fields),
 	}
 
-	// look for children in same key without #
+	// look for children in same key
 	var iChilds interface{}
 	var ok bool
 	if iChilds, ok = parent[name]; !ok {
@@ -174,17 +166,8 @@ func loadObj(name string, msi map[string]interface{}, parent map[string]interfac
 	}
 
 	childs := iChilds.(map[string]interface{})
-	for k, v := range childs {
-		name := strings.TrimPrefix(k, "#")
-		f := v.(map[string]interface{})
-		if !strings.HasPrefix(k, "#") {
-			if l, ok := loadNested(k, f); ok {
-				obj.Fields[name] = *l
-			}
-			continue
-		}
-
-		obj.Fields[name] = loadField(name, f, childs)
+	if nested, ok := loadNested(name, childs); ok {
+		obj.Fields = nested.Object.Fields
 	}
 
 	return Field{Object: &obj}
