@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.16.4 as base
+FROM --platform=$BUILDPLATFORM golang:1.17.6 as base
 
 ENV GO111MODULE=on
 WORKDIR /app

@@ -3,12 +3,18 @@ package docsonnet
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 
+	_ "embed"
+
 	"github.com/google/go-jsonnet"
-	"github.com/markbates/pkger"
 )
+
+//go:embed load.libsonnet
+var loadLibsonnet string
+
+//go:embed main.libsonnet
+var mainDocUtilLibsonnet string
 
 type Opts struct {
 	JPath []string
@@ -30,16 +36,6 @@ func Load(filename string, opts Opts) (*Package, error) {
 // representation is usually not suitable for any use, use `Transform` to
 // convert it to the familiar docsonnet data model.
 func Extract(filename string, opts Opts) ([]byte, error) {
-	// get load.libsonnet from embedded data
-	file, err := pkger.Open("/load.libsonnet")
-	if err != nil {
-		return nil, err
-	}
-	load, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
 	// setup Jsonnet vm
 	vm := jsonnet.MakeVM()
 	importer, err := newImporter(opts.JPath)
@@ -51,7 +47,7 @@ func Extract(filename string, opts Opts) ([]byte, error) {
 	// invoke load.libsonnet
 	vm.ExtCode("main", fmt.Sprintf(`(import "%s")`, filename))
 
-	data, err := vm.EvaluateSnippet("load.libsonnet", string(load))
+	data, err := vm.EvaluateSnippet("load.libsonnet", loadLibsonnet)
 	if err != nil {
 		return nil, err
 	}
@@ -79,18 +75,9 @@ type importer struct {
 }
 
 func newImporter(paths []string) (*importer, error) {
-	file, err := pkger.Open("/doc-util/main.libsonnet")
-	if err != nil {
-		return nil, err
-	}
-	load, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
 	return &importer{
 		fi:   jsonnet.FileImporter{JPaths: paths},
-		util: jsonnet.MakeContents(string(load)),
+		util: jsonnet.MakeContents(mainDocUtilLibsonnet),
 	}, nil
 }
 
