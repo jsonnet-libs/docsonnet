@@ -1,0 +1,27 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "render",
+    srcs = [
+        "fs.go",
+        "render.go",
+    ],
+    importpath = "github.com/jsonnet-libs/docsonnet/pkg/render",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/docsonnet",
+        "//pkg/md",
+        "//pkg/slug",
+        "@com_github_google_go_jsonnet//formatter:go_default_library",
+    ],
+)
+
+go_test(
+    name = "render_test",
+    srcs = ["render_test.go"],
+    embed = [":render"],
+    deps = [
+        "//pkg/docsonnet",
+        "@com_github_stretchr_testify//assert:go_default_library",
+    ],
+)

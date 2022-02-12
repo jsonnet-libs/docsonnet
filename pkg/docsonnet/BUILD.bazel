@@ -1,0 +1,25 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "docsonnet",
+    srcs = [
+        "fast.go",
+        "field.go",
+        "load.go",
+        "model.go",
+    ],
+    embedsrcs = [
+        "load.libsonnet",
+        "main.libsonnet",
+    ],
+    importpath = "github.com/jsonnet-libs/docsonnet/pkg/docsonnet",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_google_go_jsonnet//:go_default_library"],
+)
+
+go_test(
+    name = "docsonnet_test",
+    srcs = ["field_test.go"],
+    embed = [":docsonnet"],
+    deps = ["@com_github_google_go_cmp//cmp:go_default_library"],
+)

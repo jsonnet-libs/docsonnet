@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "slug",
+    srcs = ["slug.go"],
+    importpath = "github.com/jsonnet-libs/docsonnet/pkg/slug",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "slug_test",
+    srcs = ["slug_test.go"],
+    embed = [":slug"],
+    deps = ["@com_github_stretchr_testify//assert:go_default_library"],
+)

@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "md",
+    srcs = ["md.go"],
+    importpath = "github.com/jsonnet-libs/docsonnet/pkg/md",
+    visibility = ["//visibility:public"],
+    deps = ["@in_gopkg_yaml_v2//:go_default_library"],
+)
+
+go_test(
+    name = "md_test",
+    srcs = ["md_test.go"],
+    embed = [":md"],
+    deps = ["@com_github_stretchr_testify//assert:go_default_library"],
+)
