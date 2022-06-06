@@ -15,12 +15,12 @@
     ||| % p,
   },
 
-  headerPrefix(depth):: std.join('', [
+  headerDepth(depth):: std.join('', [
     '#'
     for d in std.range(0, depth + 2)
   ]),
 
-  func(k, v, depth):: {
+  func(k, v, depth, parents):: {
     local data = {
       name: k[1:],
       nameLower: std.asciiLower(self.name),
@@ -31,46 +31,72 @@
         else arg.name
         for arg in v['function'].args
       ]),
-      headerPrefix: root.headerPrefix(depth),
+      headerDepth: root.headerDepth(depth),
+      prefix: std.join('.', parents) + if std.length(parents) > 0 then '.' else '',
+      prefixLink: std.join('', parents),
     },
-    index: '[`fn %(name)s(%(args)s)`](#fn-%(nameLower)s)' % data,
+    index: '[`fn %(name)s(%(args)s)`](#fn-%(prefixLink)s%(nameLower)s)' % data,
     doc: |||
-      %(headerPrefix)s fn %(name)s
+      %(headerDepth)s fn %(prefix)s%(name)s
 
       ```ts
       %(name)s(%(args)s)
       ```
 
       %(help)s
-
     ||| % data,
   },
 
-  obj(k, v, obj, depth):: {
+  obj(k, v, obj, depth, parents):: {
     local spaces = std.join('', [
       ' '
       for d in std.range(0, (depth * 2) + 1)
     ]),
-    local processed = root.process(obj, depth + 1),
+    local processed = root.process(obj, depth + 1, parents + [k[1:]]),
     local data = {
       name: k[1:],
       nameLower: std.asciiLower(self.name),
-      help: v.object.help,
+      help: if 'object' in v && 'help' in v.object then v.object.help else '',
       subs: root.renderFields(processed, false),
       index: root.index(processed, spaces),
-      headerPrefix: root.headerPrefix(depth),
+      headerDepth: root.headerDepth(depth),
+      prefix: std.join('.', parents) + if std.length(parents) != 0 then '.' else '',
+      prefixLink: std.join('', parents),
     },
-    index: '[`obj %(name)s`](#obj-%(nameLower)s)\n%(index)s' % data,
+    index: '[`obj %(name)s`](#obj-%(prefixLink)s%(nameLower)s)\n%(index)s' % data,
     doc: |||
-      %(headerPrefix)s obj %(name)s
+      %(headerDepth)s obj %(prefix)s%(name)s
 
       %(help)s
-      %(subs)s
 
+      %(subs)s
     ||| % data,
   },
 
-  process(obj, depth=0)::
+  nodocobj(k, obj, depth, parents):: {
+    local spaces = std.join('', [
+      ' '
+      for d in std.range(0, (depth * 2) + 1)
+    ]),
+    local processed = root.process(obj, depth + 1, parents + [k]),
+    local data = {
+      name: k,
+      nameLower: std.asciiLower(self.name),
+      subs: root.renderFields(processed, false),
+      index: root.index(processed, spaces),
+      headerDepth: root.headerDepth(depth),
+      prefix: std.join('.', parents) + if std.length(parents) != 0 then '.' else '',
+      prefixLink: std.join('', parents),
+    },
+    index: '[`obj %(name)s`](#obj-%(prefixLink)s%(nameLower)s)\n%(index)s' % data,
+    doc: |||
+      %(headerDepth)s obj %(prefix)s%(name)s
+
+      %(subs)s
+    ||| % data,
+  },
+
+  process(obj, depth=0, parents=[])::
     std.foldl(
       function(acc, k)
         acc +
@@ -78,22 +104,25 @@
         then (
           local realKey = k[1:];
           if 'function' in obj[k]
-          then { fields+: [root.func(k, obj[k], depth)] }
+          then { fields+: [root.func(k, obj[k], depth, parents)] }
           else if 'object' in obj[k]
-          then { objects+: [root.obj(k, obj[k], obj[realKey], depth)] }
+          then { objects+: [root.obj(k, obj[k], obj[realKey], depth, parents)] }
           else { package: root.package(obj[k]) }
         )
         else (
           if '#' + k in obj
           then {}  // if has docs, do not search for package
           else
-            if std.isObject(obj[k])
+            if std.isObject(obj[k]) && '#' in obj[k]
             then {
               package+: {
                 subpackages+: [root.process(obj[k])],
               },
             }
-            else {}
+            else
+              if std.isObject(obj[k])
+              then { objects+: [root.nodocobj(k, obj[k], depth, parents)] }
+              else {}
         ),
       std.objectFieldsAll(obj),
       {}
@@ -105,12 +134,12 @@
       then std.join('\n', [
         spaces + '* ' + f.index
         for f in p.fields
-      ]) + '\n'
+      ])
       else ''
     )
     + (
       if 'objects' in p
-      then std.join('\n', [
+      then '\n' + std.join('\n', [
         spaces + '* ' + f.index
         for f in p.objects
       ])
@@ -120,17 +149,15 @@
   renderFields(p, headers=true)::
     (
       if 'fields' in p
-      then
-        (if headers then '## Fields\n\n' else '')
-        + std.join('\n', [
-          f.doc
-          for f in p.fields
-        ])
+      then std.join('\n', [
+        f.doc
+        for f in p.fields
+      ])
       else ''
     )
     + (
       if 'objects' in p
-      then std.join('\n', [
+      then '\n' + std.join('\n', [
         f.doc
         for f in p.objects
       ])
@@ -157,6 +184,7 @@
      else '')
     + (if headers then '## Index\n\n' else '')
     + (if index then root.index(p) else '')
+    + (if headers then '\n\n## Fields\n\n' else '')
     + root.renderFields(p, headers),
 
   render(p, prefix='')::
