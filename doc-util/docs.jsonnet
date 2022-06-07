@@ -1,3 +1,3 @@
-local r = import './render.libsonnet';
+local d = import './main.libsonnet';
 
-r.render(import 'main.libsonnet', 'main.libsonnet')
+d.render(import 'main.libsonnet', 'main.libsonnet')
