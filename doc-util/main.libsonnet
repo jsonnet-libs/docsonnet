@@ -1,6 +1,26 @@
 {
   local d = self,
 
+  '#render': d.fn(
+    |||
+      `render` converts the docstrings to human readable Markdown files.
+
+      Usage:
+
+      ```jsonnet
+      // docs.jsonnet
+      d.render(import 'main.libsonnet', 'main.libsonnet')
+      ```
+
+      Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
+    |||,
+    args=[
+      d.arg('obj', d.T.object),
+      d.arg('filename', d.T.string),
+    ]
+  ),
+  render: (import './render.libsonnet').render,
+
   '#': d.pkg(
     name='d',
     url='github.com/jsonnet-libs/docsonnet/doc-util',
@@ -73,14 +93,14 @@
   '#arg': self.argument['#new'] + self.func.withHelp('`arg` is a shorthand for `argument.new`'),
   arg:: self.argument.new,
 
-  "#value": d.obj("Utilities for documenting plain Jsonnet values (primitives)"),
+  '#value': d.obj('Utilities for documenting plain Jsonnet values (primitives)'),
   value:: {
-    "#new": d.fn("new creates a new object of given type, optionally with description and default value", [d.arg("type", d.T.string), d.arg("help", d.T.string), d.arg("default", d.T.any)]),
-    new(type, help='', default=null): { 'value': {
+    '#new': d.fn('new creates a new object of given type, optionally with description and default value', [d.arg('type', d.T.string), d.arg('help', d.T.string), d.arg('default', d.T.any)]),
+    new(type, help='', default=null): { value: {
       help: help,
       type: type,
       default: default,
-    } }
+    } },
   },
   '#val': self.value['#new'] + self.func.withHelp('`val` is a shorthand for `value.new`'),
   val: self.value.new,
@@ -100,8 +120,8 @@
     array: 'array',
     any: 'any',
 
-    'null': "null",
-    nil: self["null"],
+    'null': 'null',
+    nil: self['null'],
 
     func: 'function',
     'function': self.func,
