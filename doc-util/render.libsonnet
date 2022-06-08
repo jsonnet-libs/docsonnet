@@ -217,7 +217,7 @@
         else if std.startsWith(key, '#')
         then (
           local realKey = key[1:];
-          if 'value' in std.trace(key, obj[key])
+          if 'value' in obj[key]
           then {
             values+: [root.sections.value(
               key,
