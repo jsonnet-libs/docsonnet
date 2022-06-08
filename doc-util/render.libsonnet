@@ -12,6 +12,12 @@
       %(help)s
     |||,
 
+    indexPage: |||
+      # %(prefix)s%(name)s
+
+      %(index)s
+    |||,
+
     index: |||
       ## Index
 
@@ -31,11 +37,17 @@
     |||,
   },
 
+  joinPrefixes(prefixes, sep='.')::
+    std.join(sep, prefixes)
+    + (if std.length(prefixes) > 0
+       then sep
+       else ''),
+
   renderSectionTitle(section, prefixes)::
     root.templates.sectionTitle % {
       name: section.name,
       abbr: section.type.abbr,
-      prefix: std.join('.', prefixes) + if std.length(prefixes) > 0 then '.' else '',
+      prefix: root.joinPrefixes(prefixes),
     },
 
   renderValues(values, prefixes=[])::
@@ -44,7 +56,7 @@
       std.join('\n', [
         root.templates.value
         % value {
-          prefix: std.join('.', prefixes) + if std.length(prefixes) > 0 then '.' else '',
+          prefix: root.joinPrefixes(prefixes),
         }
         for value in values
       ]) + '\n'
@@ -118,72 +130,79 @@
          })
       + (
         if std.length(section.subSections) > 0
-        then '\n' + root.index(section.subSections, depth + 1, prefixes + [section.name])
+        then '\n' + root.index(
+          section.subSections,
+          depth + 1,
+          prefixes + [section.name]
+        )
         else ''
       )
       for section in sections
     ]),
 
-  section(key, doc, obj, depth):: {
-    name: std.strReplace(key, '#', ''),
+  sections: {
+    base: {
+      subSections: [],
+      values: [],
+    },
+    object(key, doc, obj, depth):: self.base {
+      name: std.strReplace(key, '#', ''),
 
-    local processed =
-      if std.isObject(obj)
-      then root.process(obj, depth=depth + 1)
-      else { sections: [], values: [] },
+      local processed = root.process(obj, depth=depth + 1),
 
-    subSections: processed.sections,
+      subSections: processed.sections,
 
-    values: processed.values,
+      values: processed.values,
 
-    type:
-      if 'function' in doc
-      then { full: 'function', abbr: 'fn' }
-      else if 'object' in doc
-      then { full: 'object', abbr: 'obj' }
-      else if std.isObject(obj)
-      then { full: 'object', abbr: 'obj' }
-      else { full: '', abbr: '' },
+      type: { full: 'object', abbr: 'obj' },
 
-    abbr: self.type.abbr,
+      abbr: self.type.abbr,
 
-    doc:
-      if self.type.full in doc
-      then doc[self.type.full]
-      else { help: '' },
+      doc:
+        if self.type.full in doc
+        then doc[self.type.full]
+        else { help: '' },
 
-    help: self.doc.help,
+      help: self.doc.help,
 
-    args:
-      if 'args' in self.doc
-      then std.join(', ', [
+      linkName: self.name,
+
+      content:
+        if self.help != ''
+        then self.help + '\n'
+        else '',
+    },
+
+    'function'(key, doc):: self.base {
+      name: std.strReplace(key, '#', ''),
+
+      type: { full: 'function', abbr: 'fn' },
+
+      abbr: self.type.abbr,
+
+      doc: doc[self.type.full],
+
+      help: self.doc.help,
+
+      args: std.join(', ', [
         if arg.default != null
         then arg.name + '=' + arg.default
         else arg.name
         for arg in self.doc.args
-      ])
-      else '',
+      ]),
 
-    linkName:
-      if 'args' in self.doc
-      then '%(name)s(%(args)s)' % self
-      else self.name,
+      linkName: '%(name)s(%(args)s)' % self,
 
-    contentTemplate:
-      if self.type.full == 'function'
-      then '```ts\n%(name)s(%(args)s)\n```\n\n%(help)s'
-      else if self.help != ''
-      then '%(help)s\n'
-      else '',
+      content: '```ts\n%(name)s(%(args)s)\n```\n\n%(help)s' % self,
 
-    content: self.contentTemplate % self,
-  },
+    },
 
-  value(key, doc, obj):: {
-    name: std.strReplace(key, '#', ''),
-    type: doc.value.type,
-    help: doc.value.help,
-    value: obj,
+    value(key, doc, obj):: self.base {
+      name: std.strReplace(key, '#', ''),
+      type: doc.value.type,
+      help: doc.value.help,
+      value: obj,
+    },
   },
 
   process(obj, filename='', depth=0)::
@@ -200,15 +219,27 @@
           local realKey = key[1:];
           if 'value' in std.trace(key, obj[key])
           then {
-            values+: [root.value(key, obj[key], obj[realKey])],
+            values+: [root.sections.value(
+              key,
+              obj[key],
+              obj[realKey]
+            )],
           }
           else if 'function' in obj[key]
           then {
-            functionSections+: [root.section(key, obj[key], obj[realKey], depth)],
+            functionSections+: [root.sections['function'](
+              key,
+              obj[key],
+            )],
           }
           else if 'object' in obj[key]
           then {
-            objectSections+: [root.section(key, obj[key], obj[realKey], depth)],
+            objectSections+: [root.sections.object(
+              key,
+              obj[key],
+              obj[realKey],
+              depth
+            )],
           }
           else {}
         )
@@ -222,7 +253,12 @@
         // undocumented object
         else if std.isObject(obj[key]) && !('#' + key in obj)
         then (
-          local section = root.section(key, {}, obj[key], depth);
+          local section = root.sections.object(
+            key,
+            {},
+            obj[key],
+            depth
+          );
           // only add if has documented subSections or values
           if std.length(section.subSections) > 0
              || std.length(section.values) > 0
@@ -244,15 +280,40 @@
       }
     ),
 
-  renderFiles(package, prefix='')::
+  renderIndexPage(package, prefixes)::
+    root.templates.indexPage % {
+      name: package.name,
+      prefix: root.joinPrefixes(prefixes),
+      index: std.join('\n', [
+        '* [%(name)s](%(name)s.md)' % sub
+        for sub in package.subPackages
+      ]),
+    },
+
+  renderFiles(package, prefixes=[]):
+    local key =
+      if std.length(prefixes) > 0
+      then package.name + '.md'
+      else 'README.md';
+    local path = root.joinPrefixes(prefixes, '/');
     {
-      [if prefix == '' then 'README.md' else prefix + package.name + '.md']: root.renderPackage(package),
+      [path + key]: root.renderPackage(package),
     }
+    + (
+      if std.length(package.subPackages) > 0
+      then {
+        [package.name + '/index.md']: root.renderIndexPage(package, prefixes),
+      }
+      else {}
+    )
     + std.foldl(
       function(acc, sub)
         acc + sub,
       [
-        root.renderFiles(sub, prefix=prefix + package.name + '/')
+        root.renderFiles(
+          sub,
+          prefixes=prefixes + [package.name]
+        )
         for sub in package.subPackages
       ],
       {}

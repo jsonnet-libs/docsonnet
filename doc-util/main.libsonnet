@@ -1,26 +1,6 @@
 {
   local d = self,
 
-  '#render': d.fn(
-    |||
-      `render` converts the docstrings to human readable Markdown files.
-
-      Usage:
-
-      ```jsonnet
-      // docs.jsonnet
-      d.render(import 'main.libsonnet', 'main.libsonnet')
-      ```
-
-      Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
-    |||,
-    args=[
-      d.arg('obj', d.T.object),
-      d.arg('filename', d.T.string),
-    ]
-  ),
-  render:: (import './render.libsonnet').render,
-
   '#': d.pkg(
     name='d',
     url='github.com/jsonnet-libs/docsonnet/doc-util',
@@ -136,4 +116,25 @@
     func: 'function',
     'function': self.func,
   },
+
+  '#render': d.fn(
+    |||
+      `render` converts the docstrings to human readable Markdown files.
+
+      Usage:
+
+      ```jsonnet
+      // docs.jsonnet
+      d.render(import 'main.libsonnet', 'main.libsonnet')
+      ```
+
+      Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
+    |||,
+    args=[
+      d.arg('obj', d.T.object),
+      d.arg('filename', d.T.string),
+    ]
+  ),
+  render:: (import './render.libsonnet').render,
+
 }
