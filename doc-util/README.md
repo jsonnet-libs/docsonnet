@@ -26,6 +26,7 @@ local d = import 'github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet';
   * [`fn withFields(fields)`](#fn-objectwithfields)
 * [`obj value`](#obj-value)
   * [`fn new(type, help, default)`](#fn-valuenew)
+* [`obj T`](#obj-t)
 * [`obj package`](#obj-package)
   * [`fn new(name, url, help)`](#fn-packagenew)
 
@@ -161,8 +162,19 @@ new(type, help, default)
 
 new creates a new object of given type, optionally with description and default value
 
-### obj package
+### obj T
 
+
+* `T.any` (`string`): `"any"` - argument of type "any"
+* `T.array` (`string`): `"array"` - argument of type "array"
+* `T.boolean` (`string`): `"bool"` - argument of type "boolean"
+* `T.func` (`string`): `"function"` - argument of type "func"
+* `T.null` (`string`): `"null"` - argument of type "null"
+* `T.number` (`string`): `"number"` - argument of type "number"
+* `T.object` (`string`): `"object"` - argument of type "object"
+* `T.string` (`string`): `"string"` - argument of type "string"
+
+### obj package
 
 
 #### fn package.new
