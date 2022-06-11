@@ -73,37 +73,68 @@
   '#arg': self.argument['#new'] + self.func.withHelp('`arg` is a shorthand for `argument.new`'),
   arg:: self.argument.new,
 
-  "#value": d.obj("Utilities for documenting plain Jsonnet values (primitives)"),
+  '#value': d.obj('Utilities for documenting plain Jsonnet values (primitives)'),
   value:: {
-    "#new": d.fn("new creates a new object of given type, optionally with description and default value", [d.arg("type", d.T.string), d.arg("help", d.T.string), d.arg("default", d.T.any)]),
-    new(type, help='', default=null): { 'value': {
+    '#new': d.fn('new creates a new object of given type, optionally with description and default value', [d.arg('type', d.T.string), d.arg('help', d.T.string), d.arg('default', d.T.any)]),
+    new(type, help='', default=null): { value: {
       help: help,
       type: type,
       default: default,
-    } }
+    } },
   },
   '#val': self.value['#new'] + self.func.withHelp('`val` is a shorthand for `value.new`'),
-  val: self.value.new,
+  val:: self.value.new,
 
   // T contains constants for the Jsonnet types
   T:: {
+    '#string': d.val(d.T.string, 'argument of type "string"'),
     string: 'string',
 
+    '#number': d.val(d.T.string, 'argument of type "number"'),
     number: 'number',
     int: self.number,
     integer: self.number,
 
+    '#boolean': d.val(d.T.string, 'argument of type "boolean"'),
     boolean: 'bool',
     bool: self.boolean,
 
+    '#object': d.val(d.T.string, 'argument of type "object"'),
     object: 'object',
+
+    '#array': d.val(d.T.string, 'argument of type "array"'),
     array: 'array',
+
+    '#any': d.val(d.T.string, 'argument of type "any"'),
     any: 'any',
 
-    'null': "null",
-    nil: self["null"],
+    '#null': d.val(d.T.string, 'argument of type "null"'),
+    'null': 'null',
+    nil: self['null'],
 
+    '#func': d.val(d.T.string, 'argument of type "func"'),
     func: 'function',
     'function': self.func,
   },
+
+  '#render': d.fn(
+    |||
+      `render` converts the docstrings to human readable Markdown files.
+
+      Usage:
+
+      ```jsonnet
+      // docs.jsonnet
+      d.render(import 'main.libsonnet', 'main.libsonnet')
+      ```
+
+      Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
+    |||,
+    args=[
+      d.arg('obj', d.T.object),
+      d.arg('filename', d.T.string),
+    ]
+  ),
+  render:: (import './render.libsonnet').render,
+
 }
