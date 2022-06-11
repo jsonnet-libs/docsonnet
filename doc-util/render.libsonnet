@@ -148,7 +148,7 @@
     object(key, doc, obj, depth):: self.base {
       name: std.strReplace(key, '#', ''),
 
-      local processed = root.process(obj, depth=depth + 1),
+      local processed = root.prepare(obj, depth=depth + 1),
 
       subSections: processed.sections,
 
@@ -205,7 +205,7 @@
     },
   },
 
-  process(obj, filename='', depth=0)::
+  prepare(obj, filename='', depth=0)::
     std.foldl(
       function(acc, key)
         acc +
@@ -247,7 +247,7 @@
         // subPackage definition
         else if std.isObject(obj[key]) && '#' in obj[key]
         then {
-          subPackages+: [root.process(obj[key])],
+          subPackages+: [root.prepare(obj[key])],
         }
 
         // undocumented object
@@ -320,5 +320,5 @@
     ),
 
   render(obj, filename):
-    self.renderFiles(self.process(obj, filename)),
+    self.renderFiles(self.prepare(obj, filename)),
 }
