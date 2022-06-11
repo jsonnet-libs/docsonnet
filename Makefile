@@ -16,5 +16,6 @@ push-image:
 	docker push $(IMAGE_PREFIX)/$(IMAGE_NAME):latest
 
 docs:
-	jsonnet -J doc-util -S -c -m doc-util/ doc-util/docs.jsonnet
+	jsonnet -S -c -m doc-util/ \
+		-e "(import 'doc-util/main.libsonnet').render(import 'doc-util/main.libsonnet')"
 

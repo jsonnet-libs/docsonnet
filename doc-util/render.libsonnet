@@ -5,11 +5,7 @@
     package: |||
       # package %(name)s
 
-      ```jsonnet
-      local %(name)s = import '%(import)s/%(filename)s';
-      ```
-
-      %(help)s
+      %(content)s
     |||,
 
     indexPage: |||
@@ -186,7 +182,7 @@
 
       args: std.join(', ', [
         if arg.default != null
-        then arg.name + '=' + arg.default
+        then arg.name + '=' + (if arg.default == '' then "''" else arg.default)
         else arg.name
         for arg in self.doc.args
       ]),
@@ -203,15 +199,41 @@
       help: doc.value.help,
       value: obj,
     },
+
+    package(doc, root):: {
+      name: doc.name,
+      content:
+        |||
+          %(help)s
+        ||| % doc
+        + (if root != null
+           then |||
+             Install:
+
+             `$ jb install %(url)s@%(tag)s`
+
+           ||| % doc
+           else '')
+        + |||
+          Usage:
+
+          ```jsonnet
+          local %(name)s = import '%(import)s';
+          ```
+        ||| % doc,
+    },
   },
 
-  prepare(obj, filename='', depth=0)::
+  prepare(obj, depth=0)::
     std.foldl(
       function(acc, key)
         acc +
         // Package definition
         if key == '#'
-        then obj[key] { filename: filename }
+        then root.sections.package(
+          obj[key],
+          (depth == 0)
+        )
 
         // Field definition
         else if std.startsWith(key, '#')
@@ -319,6 +341,6 @@
       {}
     ),
 
-  render(obj, filename):
-    self.renderFiles(self.prepare(obj, filename)),
+  render(obj):
+    self.renderFiles(self.prepare(obj)),
 }
