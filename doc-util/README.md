@@ -3,14 +3,16 @@
 `doc-util` provides a Jsonnet interface for `docsonnet`,
  a Jsonnet API doc generator that uses structured data instead of comments.
 
-Install:
+## Install
 
-`$ jb install github.com/jsonnet-libs/docsonnet/doc-util@master`
+```
+jb install github.com/jsonnet-libs/docsonnet/doc-util@master
+```
 
-Usage:
+## Usage
 
 ```jsonnet
-local d = import 'github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libsonnet';
+local d = import "github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libsonnet"
 ```
 
 ## Index
@@ -18,7 +20,7 @@ local d = import 'github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libso
 * [`fn arg(name, type, default)`](#fn-arg)
 * [`fn fn(help, args)`](#fn-fn)
 * [`fn obj(help, fields)`](#fn-obj)
-* [`fn pkg(name, url, help, filename='', tag=master)`](#fn-pkg)
+* [`fn pkg(name, url, help, filename='', version=master)`](#fn-pkg)
 * [`fn render(obj)`](#fn-render)
 * [`fn val(type, help, default)`](#fn-val)
 * [`obj argument`](#obj-argument)
@@ -34,7 +36,7 @@ local d = import 'github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libso
   * [`fn new(type, help, default)`](#fn-valuenew)
 * [`obj T`](#obj-t)
 * [`obj package`](#obj-package)
-  * [`fn new(name, url, help, filename='', tag=master)`](#fn-packagenew)
+  * [`fn new(name, url, help, filename='', version=master)`](#fn-packagenew)
 
 ## Fields
 
@@ -65,7 +67,7 @@ obj(help, fields)
 ### fn pkg
 
 ```ts
-pkg(name, url, help, filename='', tag=master)
+pkg(name, url, help, filename='', version=master)
 ```
 
 `new` is a shorthand for `package.new`
@@ -186,7 +188,7 @@ new creates a new object of given type, optionally with description and default 
 #### fn package.new
 
 ```ts
-new(name, url, help, filename='', tag=master)
+new(name, url, help, filename='', version=master)
 ```
 
 `new` creates a new package
@@ -197,5 +199,5 @@ Arguments:
 * source `url` for jsonnet-bundler and the import
 * `help` text
 * `filename` for the import, defaults to blank for backward compatibility
-* `tag` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
+* `version` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
 

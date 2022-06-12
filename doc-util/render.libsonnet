@@ -206,21 +206,25 @@
         |||
           %(help)s
         ||| % doc
-        + (if root != null
+        + (if 'installTemplate' in doc
            then |||
-             Install:
+             ## Install
 
-             `$ jb install %(url)s@%(tag)s`
+             ```
+             %(install)s
+             ```
 
-           ||| % doc
+           ||| % doc.installTemplate % doc
            else '')
-        + |||
-          Usage:
+        + (if 'usageTemplate' in doc
+           then |||
+             ## Usage
 
-          ```jsonnet
-          local %(name)s = import '%(import)s';
-          ```
-        ||| % doc,
+             ```jsonnet
+             %(usage)s
+             ```
+           ||| % doc.usageTemplate % doc
+           else ''),
     },
   },
 

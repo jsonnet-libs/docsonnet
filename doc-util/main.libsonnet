@@ -21,23 +21,40 @@
       * source `url` for jsonnet-bundler and the import
       * `help` text
       * `filename` for the import, defaults to blank for backward compatibility
-      * `tag` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
+      * `version` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
     |||, [
       d.arg('name', d.T.string),
       d.arg('url', d.T.string),
       d.arg('help', d.T.string),
       d.arg('filename', d.T.string, ''),
-      d.arg('tag', d.T.string, 'master'),
+      d.arg('version', d.T.string, 'master'),
     ]),
-    new(name, url, help, filename='', tag='master'):: {
-      name: name,
-      help: help,
+    new(name, url, help, filename='', version='master')::
+      {
+        name: name,
+        help: help,
+        'import':
+          if filename != ''
+          then url + '/' + filename
+          else url,
+        url: url,
+        filename: filename,
+        version: version,
 
-      url: url,
-      filename: filename,
-      tag: tag,
+      }
+      + self.withInstallTemplate(
+        'jb install %(url)s@%(version)s'
+      )
+      + self.withUsageTemplate(
+        'local %(name)s = import "%(import)s"'
+      ),
 
-      'import': url + (if filename != '' then '/' + filename else ''),
+    withUsageTemplate(template):: {
+      usageTemplate: template,
+    },
+
+    withInstallTemplate(template):: {
+      installTemplate: template,
     },
   },
 
