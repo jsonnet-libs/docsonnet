@@ -208,16 +208,17 @@
         ||| % doc
         + (if 'installTemplate' in doc
            then |||
+
              ## Install
 
              ```
              %(install)s
              ```
-
            ||| % doc.installTemplate % doc
            else '')
         + (if 'usageTemplate' in doc
            then |||
+
              ## Usage
 
              ```jsonnet
