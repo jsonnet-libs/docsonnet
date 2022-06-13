@@ -182,7 +182,11 @@
 
       args: std.join(', ', [
         if arg.default != null
-        then arg.name + '=' + (if arg.default == '' then "''" else arg.default)
+        then arg.name + '=' + (
+          if arg.type == 'string'
+          then "'%s'" % arg.default
+          else std.toString(arg.default)
+        )
         else arg.name
         for arg in self.doc.args
       ]),

@@ -21,7 +21,7 @@ local d = import "github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libso
 * [`fn arg(name, type, default)`](#fn-arg)
 * [`fn fn(help, args)`](#fn-fn)
 * [`fn obj(help, fields)`](#fn-obj)
-* [`fn pkg(name, url, help, filename='', version=master)`](#fn-pkg)
+* [`fn pkg(name, url, help, filename='', version='master')`](#fn-pkg)
 * [`fn render(obj)`](#fn-render)
 * [`fn val(type, help, default)`](#fn-val)
 * [`obj argument`](#obj-argument)
@@ -37,7 +37,7 @@ local d = import "github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libso
   * [`fn new(type, help, default)`](#fn-valuenew)
 * [`obj T`](#obj-t)
 * [`obj package`](#obj-package)
-  * [`fn new(name, url, help, filename='', version=master)`](#fn-packagenew)
+  * [`fn new(name, url, help, filename='', version='master')`](#fn-packagenew)
 
 ## Fields
 
@@ -68,7 +68,7 @@ obj(help, fields)
 ### fn pkg
 
 ```ts
-pkg(name, url, help, filename='', version=master)
+pkg(name, url, help, filename='', version='master')
 ```
 
 `new` is a shorthand for `package.new`
@@ -189,7 +189,7 @@ new creates a new object of given type, optionally with description and default 
 #### fn package.new
 
 ```ts
-new(name, url, help, filename='', version=master)
+new(name, url, help, filename='', version='master')
 ```
 
 `new` creates a new package
