@@ -5,11 +5,7 @@
     package: |||
       # package %(name)s
 
-      ```jsonnet
-      local %(name)s = import '%(import)s/%(filename)s';
-      ```
-
-      %(help)s
+      %(content)s
     |||,
 
     indexPage: |||
@@ -186,7 +182,11 @@
 
       args: std.join(', ', [
         if arg.default != null
-        then arg.name + '=' + arg.default
+        then arg.name + '=' + (
+          if arg.type == 'string'
+          then "'%s'" % arg.default
+          else std.toString(arg.default)
+        )
         else arg.name
         for arg in self.doc.args
       ]),
@@ -203,15 +203,46 @@
       help: doc.value.help,
       value: obj,
     },
+
+    package(doc, root):: {
+      name: doc.name,
+      content:
+        |||
+          %(help)s
+        ||| % doc
+        + (if 'installTemplate' in doc
+           then |||
+
+             ## Install
+
+             ```
+             %(install)s
+             ```
+           ||| % doc.installTemplate % doc
+           else '')
+        + (if 'usageTemplate' in doc
+           then |||
+
+             ## Usage
+
+             ```jsonnet
+             %(usage)s
+             ```
+           ||| % doc.usageTemplate % doc
+           else ''),
+    },
   },
 
-  prepare(obj, filename='', depth=0)::
+  prepare(obj, depth=0)::
     std.foldl(
       function(acc, key)
         acc +
         // Package definition
         if key == '#'
-        then obj[key] { filename: filename }
+        then root.sections.package(
+          obj[key],
+          (depth == 0)
+        )
 
         // Field definition
         else if std.startsWith(key, '#')
@@ -319,6 +350,6 @@
       {}
     ),
 
-  render(obj, filename):
-    self.renderFiles(self.prepare(obj, filename)),
+  render(obj):
+    self.renderFiles(self.prepare(obj)),
 }

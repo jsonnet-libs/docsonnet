@@ -7,15 +7,54 @@
     help=|||
       `doc-util` provides a Jsonnet interface for `docsonnet`,
        a Jsonnet API doc generator that uses structured data instead of comments.
-    |||
+    |||,
+    filename=std.thisFile,
   ),
 
   package:: {
-    '#new':: d.fn('new creates a new package with given `name`, `import` URL and `help` text', [d.arg('name', d.T.string), d.arg('url', d.T.string), d.arg('help', d.T.string)]),
-    new(name, url, help):: {
-      name: name,
-      'import': url,
-      help: help,
+    '#new':: d.fn(|||
+      `new` creates a new package
+
+      Arguments:
+
+      * given `name`
+      * source `url` for jsonnet-bundler and the import
+      * `help` text
+      * `filename` for the import, defaults to blank for backward compatibility
+      * `version` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
+    |||, [
+      d.arg('name', d.T.string),
+      d.arg('url', d.T.string),
+      d.arg('help', d.T.string),
+      d.arg('filename', d.T.string, ''),
+      d.arg('version', d.T.string, 'master'),
+    ]),
+    new(name, url, help, filename='', version='master')::
+      {
+        name: name,
+        help: help,
+        'import':
+          if filename != ''
+          then url + '/' + filename
+          else url,
+        url: url,
+        filename: filename,
+        version: version,
+
+      }
+      + self.withInstallTemplate(
+        'jb install %(url)s@%(version)s'
+      )
+      + self.withUsageTemplate(
+        'local %(name)s = import "%(import)s"'
+      ),
+
+    withUsageTemplate(template):: {
+      usageTemplate: template,
+    },
+
+    withInstallTemplate(template):: {
+      installTemplate: template,
     },
   },
 
@@ -125,14 +164,13 @@
 
       ```jsonnet
       // docs.jsonnet
-      d.render(import 'main.libsonnet', 'main.libsonnet')
+      d.render(import 'main.libsonnet')
       ```
 
       Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
     |||,
     args=[
       d.arg('obj', d.T.object),
-      d.arg('filename', d.T.string),
     ]
   ),
   render:: (import './render.libsonnet').render,

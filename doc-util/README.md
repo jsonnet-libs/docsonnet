@@ -1,19 +1,28 @@
 # package d
 
-```jsonnet
-local d = import 'github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet';
-```
-
 `doc-util` provides a Jsonnet interface for `docsonnet`,
  a Jsonnet API doc generator that uses structured data instead of comments.
+
+
+## Install
+
+```
+jb install github.com/jsonnet-libs/docsonnet/doc-util@master
+```
+
+## Usage
+
+```jsonnet
+local d = import "github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libsonnet"
+```
 
 ## Index
 
 * [`fn arg(name, type, default)`](#fn-arg)
 * [`fn fn(help, args)`](#fn-fn)
 * [`fn obj(help, fields)`](#fn-obj)
-* [`fn pkg(name, url, help)`](#fn-pkg)
-* [`fn render(obj, filename)`](#fn-render)
+* [`fn pkg(name, url, help, filename='', version='master')`](#fn-pkg)
+* [`fn render(obj)`](#fn-render)
 * [`fn val(type, help, default)`](#fn-val)
 * [`obj argument`](#obj-argument)
   * [`fn new(name, type, default)`](#fn-argumentnew)
@@ -28,7 +37,7 @@ local d = import 'github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet';
   * [`fn new(type, help, default)`](#fn-valuenew)
 * [`obj T`](#obj-t)
 * [`obj package`](#obj-package)
-  * [`fn new(name, url, help)`](#fn-packagenew)
+  * [`fn new(name, url, help, filename='', version='master')`](#fn-packagenew)
 
 ## Fields
 
@@ -59,7 +68,7 @@ obj(help, fields)
 ### fn pkg
 
 ```ts
-pkg(name, url, help)
+pkg(name, url, help, filename='', version='master')
 ```
 
 `new` is a shorthand for `package.new`
@@ -67,7 +76,7 @@ pkg(name, url, help)
 ### fn render
 
 ```ts
-render(obj, filename)
+render(obj)
 ```
 
 `render` converts the docstrings to human readable Markdown files.
@@ -76,7 +85,7 @@ Usage:
 
 ```jsonnet
 // docs.jsonnet
-d.render(import 'main.libsonnet', 'main.libsonnet')
+d.render(import 'main.libsonnet')
 ```
 
 Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
@@ -180,7 +189,16 @@ new creates a new object of given type, optionally with description and default 
 #### fn package.new
 
 ```ts
-new(name, url, help)
+new(name, url, help, filename='', version='master')
 ```
 
-new creates a new package with given `name`, `import` URL and `help` text
+`new` creates a new package
+
+Arguments:
+
+* given `name`
+* source `url` for jsonnet-bundler and the import
+* `help` text
+* `filename` for the import, defaults to blank for backward compatibility
+* `version` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
+
