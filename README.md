@@ -81,6 +81,10 @@ Again, the naming rule `#` joined with the fields name must be followed, so the 
 
 No! The `docsonnet` binary comes included with it, and during normal Jsonnet use the docsonnet keys will never be accessed, so your Jsonnet runs just fine without.
 
+> **Note** 
+> 
+> Linters like [jsonnet-lint](https://pkg.go.dev/github.com/google/go-jsonnet/linter) or `tk lint` require the imports to be resolvable, so you should add `doc-util` to `vendor/` when using these linters.
+
 #### What's wrong with comments? Why not parse regular comments?
 
 I had some attempts on this, especially because it feels more natural. However, the language properties of Jsonnet make this quite challenging:
