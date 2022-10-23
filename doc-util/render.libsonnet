@@ -244,11 +244,20 @@
           (depth == 0)
         )
 
+
         // Field definition
         else if std.startsWith(key, '#')
         then (
           local realKey = key[1:];
-          if 'value' in obj[key]
+
+          if !std.isObject(obj[key])
+          then
+            std.trace(
+              'INFO: docstring "%s" cannot be parsed, ignored while rendering.' % key,
+              {}
+            )
+
+          else if 'value' in obj[key]
           then {
             values+: [root.sections.value(
               key,
@@ -272,7 +281,11 @@
               depth
             )],
           }
-          else {}
+          else
+            std.trace(
+              'INFO: docstring "%s" cannot be parsed, ignored while rendering.' % key,
+              {}
+            )
         )
 
         // subPackage definition
