@@ -1,7 +1,6 @@
 package render
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -22,7 +21,7 @@ func To(pkg docsonnet.Package, dir string, opts Opts) (int, error) {
 		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 			return n, err
 		}
-		if err := ioutil.WriteFile(fullpath, []byte(v), 0644); err != nil {
+		if err := os.WriteFile(fullpath, []byte(v), 0644); err != nil {
 			return n, err
 		}
 		n++
