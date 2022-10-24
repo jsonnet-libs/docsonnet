@@ -20,11 +20,11 @@
       %s
     |||,
 
-    sectionTitle: '%(abbr)s %(prefix)s%(name)s',
+    sectionTitle: '%(abbr)s %(prefixAndName)s',
 
     sectionLink: '* [`%(abbr)s %(linkName)s`](#%(link)s)',
 
-    value: '* `%(prefix)s%(name)s` (`%(type)s`): `"%(value)s"` - %(help)s',
+    value: '* `%(type)s` `%(prefixAndName)s`: `"%(value)s"` - %(help)s',
 
     section: |||
       %(headerDepth)s %(title)s
@@ -33,17 +33,34 @@
     |||,
   },
 
-  joinPrefixes(prefixes, sep='.')::
+  joinPathPrefixes(prefixes, sep='/')::
     std.join(sep, prefixes)
     + (if std.length(prefixes) > 0
        then sep
        else ''),
 
+  joinPrefixes(prefixes, sep='.')::
+    std.join('', [
+      local key = root.escapeDottedKey(prefixes[i]);
+      if i == 0
+      then key
+      else
+        if key != prefixes[i]
+        then key
+        else sep + key
+      for i in std.range(0, std.length(prefixes) - 1)
+    ]),
+
+  escapeDottedKey(key)::
+    if std.member(key, '.')
+    then '["%s"]' % key
+    else key,
+
   renderSectionTitle(section, prefixes)::
     root.templates.sectionTitle % {
       name: section.name,
       abbr: section.type.abbr,
-      prefix: root.joinPrefixes(prefixes),
+      prefixAndName: root.joinPrefixes(prefixes + [section.name]),
     },
 
   renderValues(values, prefixes=[])::
@@ -52,7 +69,7 @@
       std.join('\n', [
         root.templates.value
         % value {
-          prefix: root.joinPrefixes(prefixes),
+          prefixAndName: root.joinPrefixes(prefixes + [value.name]),
         }
         for value in values
       ]) + '\n'
@@ -125,7 +142,10 @@
            link:
              std.asciiLower(
                std.strReplace(
-                 std.strReplace(root.renderSectionTitle(section, prefixes), '.', '')
+                 std.strReplace(
+                   root.renderSectionTitle(section, prefixes)
+                   , '.', ''
+                 )
                  , ' ', '-'
                )
              ),
@@ -167,7 +187,7 @@
 
       help: self.doc.help,
 
-      linkName: self.name,
+      linkName: root.escapeDottedKey(self.name),
 
       content:
         if self.help != ''
@@ -333,7 +353,7 @@
   renderIndexPage(package, prefixes)::
     root.templates.indexPage % {
       name: package.name,
-      prefix: root.joinPrefixes(prefixes),
+      prefix: root.joinPrefixes(prefixes + [package.name]),
       index: std.join('\n', [
         '* [%(name)s](%(name)s.md)' % sub
         for sub in package.subPackages
@@ -345,7 +365,7 @@
       if std.length(prefixes) > 0
       then package.name + '.md'
       else 'README.md';
-    local path = root.joinPrefixes(prefixes, '/');
+    local path = root.joinPathPrefixes(prefixes);
     {
       [path + key]: root.renderPackage(package),
     }
