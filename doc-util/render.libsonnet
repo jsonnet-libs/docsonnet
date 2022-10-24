@@ -102,10 +102,16 @@
         ]) + '\n\n'
       else ''
     )
-    + (root.templates.index % root.index(package.sections))
-    + '\n## Fields\n\n'
-    + root.renderValues(package.values)
-    + root.renderSections(package.sections),
+    + (if std.length(package.sections) > 0
+       then (root.templates.index % root.index(package.sections))
+       else '')
+    + (if std.length(package.values) > 0
+          || std.length(package.sections) > 0
+       then
+         '\n## Fields\n\n'
+         + root.renderValues(package.values)
+         + root.renderSections(package.sections)
+       else ''),
 
   index(sections, depth=0, prefixes=[])::
     std.join('\n', [
