@@ -3,7 +3,7 @@ package docsonnet
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 
 	"github.com/google/go-jsonnet"
@@ -35,7 +35,7 @@ func Extract(filename string, opts Opts) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	load, err := ioutil.ReadAll(file)
+	load, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func Extract(filename string, opts Opts) ([]byte, error) {
 	// invoke load.libsonnet
 	vm.ExtCode("main", fmt.Sprintf(`(import "%s")`, filename))
 
-	data, err := vm.EvaluateSnippet("load.libsonnet", string(load))
+	data, err := vm.EvaluateAnonymousSnippet("load.libsonnet", string(load))
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func newImporter(paths []string) (*importer, error) {
 	if err != nil {
 		return nil, err
 	}
-	load, err := ioutil.ReadAll(file)
+	load, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err
 	}
