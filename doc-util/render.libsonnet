@@ -33,6 +33,12 @@
     |||,
   },
 
+  joinPathPrefixes(prefixes, sep='/')::
+    std.join(sep, prefixes)
+    + (if std.length(prefixes) > 0
+       then sep
+       else ''),
+
   joinPrefixes(prefixes, sep='.')::
     std.join(sep, prefixes)
     + (if std.length(prefixes) > 0
@@ -345,14 +351,14 @@
       if std.length(prefixes) > 0
       then package.name + '.md'
       else 'README.md';
-    local path = root.joinPrefixes(prefixes, '/');
+    local path = root.joinPathPrefixes(prefixes);
     {
       [path + key]: root.renderPackage(package),
     }
     + (
       if std.length(package.subPackages) > 0
       then {
-        [package.name + '/index.md']: root.renderIndexPage(package, prefixes),
+        [path + package.name + '/index.md']: root.renderIndexPage(package, prefixes),
       }
       else {}
     )
