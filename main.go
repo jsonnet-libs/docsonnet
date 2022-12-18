@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,6 +10,11 @@ import (
 
 	"github.com/jsonnet-libs/docsonnet/pkg/docsonnet"
 	"github.com/jsonnet-libs/docsonnet/pkg/render"
+)
+
+var (
+	//go:embed load.libsonnet doc-util
+	embedded embed.FS
 )
 
 func main() {
@@ -30,7 +36,7 @@ func main() {
 		file := args[0]
 
 		log.Println("Extracting from Jsonnet")
-		data, err := docsonnet.Extract(file, docsonnet.Opts{JPath: *jpath})
+		data, err := docsonnet.Extract(file, docsonnet.Opts{JPath: *jpath, EmbeddedFS: embedded})
 		if err != nil {
 			log.Fatalln("Extracting:", err)
 		}
