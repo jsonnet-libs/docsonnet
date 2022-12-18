@@ -8,11 +8,14 @@ import (
 )
 
 func To(pkg docsonnet.Package, dir string, opts Opts) (int, error) {
+	data := Render(pkg, opts)
+	return Write(data, dir)
+}
+
+func Write(data map[string]string, dir string) (int, error) {
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return 0, err
 	}
-
-	data := Render(pkg, opts)
 
 	n := 0
 	for k, v := range data {
