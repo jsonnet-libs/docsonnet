@@ -54,7 +54,7 @@ Most common part of an API will be functions. These are annotated in a similar f
 }
 ```
 
-Along the actual function definition, a _docsonnet_ key is added, with the functions name prefixed by the familiar `#` as it's name.  
+Along the actual function definition, a _docsonnet_ key is added, with the functions name prefixed by the familiar `#` as it's name.
 Above example defines `myFunc` as a function, that greets the user and takes a single argument of type `string`.
 
 ### Objects
@@ -75,15 +75,68 @@ Such an object might need a description as well, so you can also annotate it:
 
 Again, the naming rule `#` joined with the fields name must be followed, so the `docsonnet` utility can automatically join together the contents of your object with it's annotated description.
 
-## FAQ
 
-#### Do my projects need to have `doc-util` installed to vendor/?
+## Usage
 
-No! The `docsonnet` binary comes included with it, and during normal Jsonnet use the docsonnet keys will never be accessed, so your Jsonnet runs just fine without.
+Once you have a Jsonnet library annotated with `doc-util`, you can generate the docs using one of three ways:
 
-> **Note** 
-> 
+- [Jsonnet renderer](#jsonnet-renderer)
+- [docsonnet binary](#docsonnet-binary)
+- [docsonnet docker image](#docsonnet-docker-image)
+
+### Jsonnet renderer
+
+The docs can be rendered using Jsonnet with the
+[render](https://github.com/jsonnet-libs/docsonnet/tree/master/doc-util#fn-render) function.
+
+In your library source, add a file `docs.jsonnet` (assuming your library entrypoint is `main.libsonnet`) with the
+following contents:
+
+```jsonnet
+local d = import 'github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet';
+d.render(import 'main.libsonnet')
+```
+
+Then, you can render the markdown to the `docs/` folder using the following command:
+
+```
+jsonnet -S -c -m docs/ docs.jsonnet
+```
+
+Note that this requires `doc-util` to be installed to `vender/` to work properly.
+
+### docsonnet binary
+
+Alternatively, the docs can be rendered using the `docsonnet` go binary. The `docsonnet` binary embeds the `doc-util`
+library, avoiding the need to have `doc-util` installed.
+
+You can install the `docsonnet` binary using `go install`:
+
+```
+go install github.com/jsonnet-libs/docsonnet@master
+```
+
+Once the binary is installed, you can generate the docs by passing it the main entrypoint to your Jsonnet library:
+
+```
+docsonnet main.libsonnet
+```
+
+> **Note**
+>
 > Linters like [jsonnet-lint](https://pkg.go.dev/github.com/google/go-jsonnet/linter) or `tk lint` require the imports to be resolvable, so you should add `doc-util` to `vendor/` when using these linters.
+
+### docsonnet docker image
+
+You can also use the [docker image](https://hub.docker.com/r/jsonnetlibs/docsonnet) which contains the `docsonnet`
+binary if you do not wish to set up go or install the binary locally:
+
+```
+docker run -v "$(pwd):/src" jsonnetlibs/docsonnet /src/main.libsonnet
+```
+
+
+## FAQ
 
 #### What's wrong with comments? Why not parse regular comments?
 
