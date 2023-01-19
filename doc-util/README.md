@@ -13,7 +13,7 @@ jb install github.com/jsonnet-libs/docsonnet/doc-util@master
 ## Usage
 
 ```jsonnet
-local d = import "github.com/jsonnet-libs/docsonnet/doc-util/doc-util/main.libsonnet"
+local d = import "github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet"
 ```
 
 ## Index
