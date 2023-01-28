@@ -1,3 +1,21 @@
+FROM --platform=$BUILDPLATFORM golang:1.16.4 as base
+
+ENV GO111MODULE=on
+WORKDIR /app
+
+COPY go.mod .
+COPY go.sum .
+
+RUN go mod download
+
+COPY . .
+
+FROM base AS builder
+
+ENV GOARCH=$TARGETARCH
+RUN CGO_ENABLED=0 go build -ldflags='-s -w -extldflags "-static"' .
+
 FROM alpine:3.12
-ENTRYPOINT ["/usr/bin/docsonnet"]
-COPY docsonnet /usr/bin/docsonnet
+COPY --from=builder /app/docsonnet /usr/local/bin
+
+ENTRYPOINT ["docsonnet"]
