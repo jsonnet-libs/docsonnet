@@ -39,7 +39,7 @@ Jsonnet itself does not know traditional packages, classes or similar.
 
 For documentation and distribution purposes however, it seems reasonable to introduce a concept of **loose packages**, defined as a single importable file, holding all of your **public API**.
 
-As an example, a hypothetical `url` library could define it's package like above example does.
+As an example, a hypothetical `url` library could define its package like above example does.
 
 Packages are defined by including assigning a `d.pkg` call to a key literally named `#` (hash). All fields, including nested packages, of the same object having the `#` key belong to that package.
 
@@ -54,7 +54,7 @@ Most common part of an API will be functions. These are annotated in a similar f
 }
 ```
 
-Along the actual function definition, a _docsonnet_ key is added, with the functions name prefixed by the familiar `#` as it's name.
+Along the actual function definition, a _docsonnet_ key is added, with the functions name prefixed by the familiar `#` as its name.
 Above example defines `myFunc` as a function, that greets the user and takes a single argument of type `string`.
 
 ### Objects
@@ -73,7 +73,7 @@ Such an object might need a description as well, so you can also annotate it:
 }
 ```
 
-Again, the naming rule `#` joined with the fields name must be followed, so the `docsonnet` utility can automatically join together the contents of your object with it's annotated description.
+Again, the naming rule `#` joined with the fields name must be followed, so the `docsonnet` utility can automatically join together the contents of your object with its annotated description.
 
 
 ## Usage
@@ -185,4 +185,4 @@ This will all happen transparently, without any user interaction
 
 Because the Docsonnet gives you the missing logical representation of your Jsonnet library, it enables straight forward implementation of other language tooling, such as **code-completion**.
 
-Instead of inferring what fields are available for a library, we can _just_ look at it's docsonnet and provide the fields specified there, along with nice descriptions and argument types.
+Instead of inferring what fields are available for a library, we can _just_ look at its docsonnet and provide the fields specified there, along with nice descriptions and argument types.
