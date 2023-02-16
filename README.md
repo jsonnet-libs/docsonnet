@@ -132,7 +132,7 @@ You can also use the [docker image](https://hub.docker.com/r/jsonnetlibs/docsonn
 binary if you do not wish to set up go or install the binary locally:
 
 ```
-docker run -v "$(pwd):/src" jsonnetlibs/docsonnet /src/main.libsonnet
+docker run --rm -v "$(pwd):/src" -v "$(pwd)/docs:/docs" jsonnetlibs/docsonnet /src/main.libsonnet
 ```
 
 
