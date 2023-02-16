@@ -49,6 +49,23 @@
         'local %(name)s = import "%(import)s"'
       ),
 
+    '#newSub':: d.fn(|||
+      `newSub` creates a package without the preconfigured install/usage templates.
+
+      Arguments:
+
+      * given `name`
+      * `help` text
+    |||, [
+      d.arg('name', d.T.string),
+      d.arg('help', d.T.string),
+    ]),
+    newSub(name, help)::
+      {
+        name: name,
+        help: help,
+      },
+
     withUsageTemplate(template):: {
       usageTemplate: template,
     },
