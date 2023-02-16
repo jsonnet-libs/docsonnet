@@ -38,6 +38,7 @@ local d = import "github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet"
 * [`obj T`](#obj-t)
 * [`obj package`](#obj-package)
   * [`fn new(name, url, help, filename='', version='master')`](#fn-packagenew)
+  * [`fn newSub(name, help)`](#fn-packagenewsub)
 
 ## Fields
 
@@ -201,4 +202,18 @@ Arguments:
 * `help` text
 * `filename` for the import, defaults to blank for backward compatibility
 * `version` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
+
+
+#### fn package.newSub
+
+```ts
+newSub(name, help)
+```
+
+`newSub` creates a package without the preconfigured install/usage templates.
+
+Arguments:
+
+* given `name`
+* `help` text
 

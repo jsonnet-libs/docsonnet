@@ -7,6 +7,7 @@ release:
 	goreleaser release --rm-dist
 
 docs:
-	jsonnet -S -c -m doc-util/ \
-		-e "(import 'doc-util/main.libsonnet').render(import 'doc-util/main.libsonnet')"
+	cd doc-util && \
+	jsonnet -S -c -m . \
+		-e "(import './main.libsonnet').render(import './main.libsonnet')"
 
