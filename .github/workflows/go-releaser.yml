@@ -5,9 +5,7 @@ on:
     tags:
       - "*"
 
-permissions:
-  contents: write
-  packages: write
+permissions: write-all
 
 jobs:
   release:
@@ -43,10 +41,10 @@ jobs:
       # Run goreleaser; this one creates the GH release and pushes the images
       - name: Run GoReleaser
         id: goreleaser-id
-        uses: goreleaser/goreleaser-action@v2
+        uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
