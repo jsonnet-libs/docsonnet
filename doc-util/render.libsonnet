@@ -203,9 +203,31 @@
         for arg in self.doc.args
       ]),
 
+      enums: std.join('', [
+        if arg.enums != null
+        then '\n\nAccepted values for `%s` are ' % arg.name
+             + (
+               std.join(', ', [
+                 std.toString(item)
+                 for item in arg.enums
+               ])
+             )
+        else ''
+        for arg in self.doc.args
+      ]),
+
       linkName: '%(name)s(%(args)s)' % self,
 
-      content: '```ts\n%(name)s(%(args)s)\n```\n\n%(help)s' % self,
+      content:
+        (|||
+           ```ts
+           %(name)s(%(args)s)
+           ```
+
+         ||| % self)
+        + '%(help)s' % self
+        + '%(enums)s' % self,
+      // odd concatenation to prevent unintential newline changes
 
     },
 

@@ -102,11 +102,30 @@
 
   '#argument': d.obj('Utilities for creating function arguments'),
   argument:: {
-    '#new': d.fn('new creates a new function argument, taking the name, the type and optionally a default value', [d.arg('name', d.T.string), d.arg('type', d.T.string), d.arg('default', d.T.any)]),
-    new(name, type, default=null): {
+    '#new': d.fn(|||
+      `new` creates a new function argument, taking the `name`, the `type`. Optionally it
+      can take a `default` value and `enum`-erate potential values.
+
+      Examples:
+
+      ```jsonnet
+      [
+        d.argument.new('foo', d.T.string),
+        d.argument.new('bar', d.T.string, default='loo'),
+        d.argument.new('baz', d.T.number, enums=[1,2,3]),
+      ]
+      ```
+    |||, [
+      d.arg('name', d.T.string),
+      d.arg('type', d.T.string),
+      d.arg('default', d.T.any),
+      d.arg('enums', d.T.array),
+    ]),
+    new(name, type, default=null, enums=null): {
       name: name,
       type: type,
       default: default,
+      enums: enums,
     },
   },
   '#arg': self.argument['#new'] + self.func.withHelp('`arg` is a shorthand for `argument.new`'),
