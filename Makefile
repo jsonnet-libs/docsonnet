@@ -1,19 +1,10 @@
-.PHONY: build test push push-image docs
-
-IMAGE_NAME ?= docsonnet
-IMAGE_PREFIX ?= jsonnetlibs
-IMAGE_TAG ?= 0.0.4
+.PHONY: build release docs
 
 build:
-	docker buildx build -t $(IMAGE_PREFIX)/$(IMAGE_NAME):$(IMAGE_TAG) .
+	goreleaser build --rm-dist --snapshot
 
-test: build
-
-push: build test push-image
-
-push-image:
-	docker push $(IMAGE_PREFIX)/$(IMAGE_NAME):$(IMAGE_TAG)
-	docker push $(IMAGE_PREFIX)/$(IMAGE_NAME):latest
+release:
+	goreleaser release --rm-dist
 
 docs:
 	jsonnet -S -c -m doc-util/ \
