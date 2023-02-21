@@ -64,33 +64,52 @@
       ]) + '\n'
     else '',
 
+  sectionsLoop(sections, renderFunc, constructorName='new'):
+    local constructor =
+      std.filter(
+        function(s) s.name == constructorName,
+        sections
+      );
+    std.join(
+      '\n',
+      (if std.length(constructor) == 1
+       then [renderFunc(constructor[0])]
+       else [])
+      + [
+        renderFunc(section)
+        for section in sections
+        if section.name != constructorName
+      ]
+    ),
+
   renderSections(sections, depth=0, prefixes=[])::
     if std.length(sections) > 0
     then
-      std.join('\n', [
-        root.templates.section
-        % {
-          headerDepth: std.join('', [
-            '#'
-            for d in std.range(0, depth + 2)
-          ]),
-          title: root.renderSectionTitle(
-            section,
-            prefixes,
-          ),
-          content: section.content,
-        }
-        + root.renderValues(
-          section.values,
-          prefixes + [section.name]
-        )
-        + root.renderSections(
-          section.subSections,
-          depth + 1,
-          prefixes + [section.name]
-        )
-        for section in sections
-      ])
+      self.sectionsLoop(
+        sections,
+        function(section)
+          root.templates.section
+          % {
+            headerDepth: std.join('', [
+              '#'
+              for d in std.range(0, depth + 2)
+            ]),
+            title: root.renderSectionTitle(
+              section,
+              prefixes,
+            ),
+            content: section.content,
+          }
+          + root.renderValues(
+            section.values,
+            prefixes + [section.name]
+          )
+          + root.renderSections(
+            section.subSections,
+            depth + 1,
+            prefixes + [section.name]
+          )
+      )
     else '',
 
   renderPackage(package)::
@@ -120,33 +139,34 @@
        else ''),
 
   index(sections, depth=0, prefixes=[])::
-    std.join('\n', [
-      std.join('', [
-        ' '
-        for d in std.range(0, (depth * 2) - 1)
-      ])
-      + (root.templates.sectionLink % {
-           abbr: section.type.abbr,
-           linkName: section.linkName,
-           link:
-             std.asciiLower(
-               std.strReplace(
-                 std.strReplace(root.renderSectionTitle(section, prefixes), '.', '')
-                 , ' ', '-'
-               )
-             ),
-         })
-      + (
-        if std.length(section.subSections) > 0
-        then '\n' + root.index(
-          section.subSections,
-          depth + 1,
-          prefixes + [section.name]
+    self.sectionsLoop(
+      sections,
+      function(section)
+        std.join('', [
+          ' '
+          for d in std.range(0, (depth * 2) - 1)
+        ])
+        + (root.templates.sectionLink % {
+             abbr: section.type.abbr,
+             linkName: section.linkName,
+             link:
+               std.asciiLower(
+                 std.strReplace(
+                   std.strReplace(root.renderSectionTitle(section, prefixes), '.', '')
+                   , ' ', '-'
+                 )
+               ),
+           })
+        + (
+          if std.length(section.subSections) > 0
+          then '\n' + root.index(
+            section.subSections,
+            depth + 1,
+            prefixes + [section.name]
+          )
+          else ''
         )
-        else ''
-      )
-      for section in sections
-    ]),
+    ),
 
   sections: {
     base: {
