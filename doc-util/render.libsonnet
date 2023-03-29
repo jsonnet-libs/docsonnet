@@ -3,7 +3,7 @@
 
   templates: {
     package: |||
-      # package %(name)s
+      # %(name)s
 
       %(content)s
     |||,
