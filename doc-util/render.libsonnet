@@ -194,11 +194,10 @@
 
       args: std.join(', ', [
         if arg.default != null
-        then arg.name + '=' + (
-          if arg.type == 'string'
-          then "'%s'" % arg.default
-          else std.toString(arg.default)
-        )
+        then std.join('=', [
+          arg.name,
+          std.manifestJsonEx(arg.default, '', ''),
+        ])
         else arg.name
         for arg in self.doc.args
       ]),
@@ -206,12 +205,10 @@
       enums: std.join('', [
         if arg.enums != null
         then '\n\nAccepted values for `%s` are ' % arg.name
-             + (
-               std.join(', ', [
-                 std.toString(item)
-                 for item in arg.enums
-               ])
-             )
+             + std.join(', ', [
+               std.manifestJsonEx(item, '', '')
+               for item in arg.enums
+             ])
         else ''
         for arg in self.doc.args
       ]),

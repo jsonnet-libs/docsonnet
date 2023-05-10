@@ -1,15 +1,19 @@
 {
   local d = self,
 
-  '#': d.pkg(
-    name='d',
-    url='github.com/jsonnet-libs/docsonnet/doc-util',
-    help=|||
-      `doc-util` provides a Jsonnet interface for `docsonnet`,
-       a Jsonnet API doc generator that uses structured data instead of comments.
-    |||,
-    filename=std.thisFile,
-  ),
+  '#':
+    d.pkg(
+      name='doc-util',
+      url='github.com/jsonnet-libs/docsonnet/doc-util',
+      help=|||
+        `doc-util` provides a Jsonnet interface for `docsonnet`,
+         a Jsonnet API doc generator that uses structured data instead of comments.
+      |||,
+      filename=std.thisFile,
+    )
+    + d.package.withUsageTemplate(
+      'local d = import "%(import)s"'
+    ),
 
   package:: {
     '#new':: d.fn(|||
