@@ -93,7 +93,7 @@
       ])
     else '',
 
-  renderPackage(package)::
+  renderPackage(package, path='')::
     (root.templates.package % package)
     + (
       if std.length(package.subPackages) > 0
@@ -102,7 +102,10 @@
         + std.join('\n', [
           '* [%(name)s](%(path)s)' % {
             name: sub.name,
-            path: package.name + '/' + sub.name + '.md',
+            path: path + sub.name
+                  + (if std.length(sub.subPackages) > 0
+                     then '/index.md'
+                     else '.md'),
           }
           for sub in package.subPackages
         ]) + '\n\n'
@@ -366,20 +369,19 @@
     },
 
   renderFiles(package, prefixes=[]):
-    local key =
-      if std.length(prefixes) > 0
-      then package.name + '.md'
-      else 'README.md';
     local path = root.joinPathPrefixes(prefixes);
-    {
-      [path + key]: root.renderPackage(package),
-    }
-    + (
-      if std.length(package.subPackages) > 0
+    (
+      if std.length(prefixes) == 0
       then {
-        [path + package.name + '/index.md']: root.renderIndexPage(package, prefixes),
+        [path + 'README.md']: root.renderPackage(package),
       }
-      else {}
+      else if std.length(package.subPackages) > 0
+      then {
+        [path + package.name + '/index.md']: root.renderPackage(package),
+      }
+      else {
+        [path + package.name + '.md']: root.renderPackage(package, package.name + '/'),
+      }
     )
     + std.foldl(
       function(acc, sub)
