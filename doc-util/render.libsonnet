@@ -373,7 +373,7 @@
     (
       if std.length(prefixes) == 0
       then {
-        [path + 'README.md']: root.renderPackage(package),
+        [path + 'README.md']: root.renderPackage(package, package.name + '/'),
       }
       else if std.length(package.subPackages) > 0
       then {
