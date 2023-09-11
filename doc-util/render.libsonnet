@@ -161,6 +161,8 @@
 
       local processed = root.prepare(obj, depth=depth + 1),
 
+      subPackages: std.get(processed, 'subPackages', []),
+
       subSections: processed.sections,
 
       values: processed.values,
@@ -340,7 +342,10 @@
           // only add if has documented subSections or values
           if std.length(section.subSections) > 0
              || std.length(section.values) > 0
-          then { objectSections+: [section] }
+          then {
+            objectSections+: [section],
+            subPackages+: section.subPackages,
+          }
           else {}
         )
 
