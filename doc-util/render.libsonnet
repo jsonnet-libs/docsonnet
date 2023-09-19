@@ -96,28 +96,6 @@
         + (if std.get(doc, 'help', '') != ''
            then [doc.help]
            else [])
-        + (if 'installTemplate' in doc
-           then [
-             |||
-               ## Install
-
-               ```
-               %(install)s
-               ```
-             ||| % doc.installTemplate % doc,
-           ]
-           else [])
-        + (if 'usageTemplate' in doc
-           then [
-             |||
-               ## Usage
-
-               ```jsonnet
-               %(usage)s
-               ```
-             ||| % doc.usageTemplate % doc,
-           ]
-           else [])
         + (if self.packages.hasPackages()
            then [
              '## Subpackages\n\n'
