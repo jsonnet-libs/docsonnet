@@ -12,15 +12,15 @@
         function(acc, k)
           acc
           + (
-            // If matches a package, return it
-            if '#' in obj[k]
-            then [root.package(obj[k], path + [k], parentWasPackage)]
             // If matches a package but warn if also has an object docstring
-            else if '#' in obj[k] && '#' + k in obj
+            if '#' in obj[k] && '#' + k in obj
             then std.trace(
               'warning: %s both defined as object and package' % k,
               [root.package(obj[k], path + [k], parentWasPackage)]
             )
+            // If matches a package, return it
+            else if '#' in obj[k]
+            then [root.package(obj[k], path + [k], parentWasPackage)]
             // If not, keep looking
             else find(obj[k], path + [k], parentWasPackage=false)
           ),
@@ -37,11 +37,11 @@
 
     hasPackages(): std.length(self.packages) > 0,
 
-    toIndex():
+    toIndex(relativeTo=[]):
       if self.hasPackages()
       then
         std.join('\n', [
-          '* ' + p.link
+          '* ' + p.link(relativeTo)
           for p in self.packages
         ])
         + '\n'
@@ -65,24 +65,22 @@
     packages: root.findPackages(obj, path),
     fields: root.fields(obj),
 
-    path:
-      std.join(
-        '/',
-        path
-      )
-      + (if self.packages.hasPackages()
-         then '/index.md'
-         else '.md'),
+    local pathsuffix =
+      (if self.packages.hasPackages()
+       then '/index.md'
+       else '.md'),
 
-    link:
+    // filepath on disk
+    path:
+      std.join('/', path)
+      + pathsuffix,
+
+    link(relativeTo):
+      local relativepath = root.util.getRelativePath(path, relativeTo);
       '[%s](%s)' % [
-        std.join(
-          '.',
-          (if parentWasPackage  // if parent object was a package
-           then path[1:]  // then strip first item from path
-           else path)
-        ),
-        self.path,
+        std.join('.', relativepath),
+        std.join('/', relativepath)
+        + pathsuffix,
       ],
 
     toFiles():
@@ -94,12 +92,12 @@
         '\n',
         ['# ' + doc.name + '\n']
         + (if std.get(doc, 'help', '') != ''
-           then [doc.help]
-           else [])
+           then [doc.help, '']
+           else ['', ''])
         + (if self.packages.hasPackages()
            then [
              '## Subpackages\n\n'
-             + self.packages.toIndex(),
+             + self.packages.toIndex(path),
            ]
            else [])
         + (if self.fields.hasFields()
@@ -299,11 +297,14 @@
 
     enums: std.join('', [
       if arg.enums != null
-      then '\n\nAccepted values for `%s` are ' % arg.name
-           + std.join(', ', [
-             std.manifestJsonEx(item, '', '')
-             for item in arg.enums
-           ])
+      then
+        '\nAccepted values for `%s` are %s\n' % [
+          arg.name,
+          std.join(', ', [
+            std.manifestJsonEx(item, '', '')
+            for item in arg.enums
+          ]),
+        ]
       else ''
       for arg in doc['function'].args
     ]),
@@ -392,5 +393,34 @@
           type in obj[k],
           root.util.realkey(k) in obj,
         ]),
+
+    getRelativePath(path, relativeTo):
+      local shortest = std.min(std.length(relativeTo), std.length(path));
+
+      local commonIndex =
+        std.foldl(
+          function(acc, i) (
+            if acc.stop
+            then acc
+            else
+              acc + {
+                // stop count if path diverges
+                local stop = relativeTo[i] != path[i],
+                stop: stop,
+                count+: if stop then 0 else 1,
+              }
+          ),
+          std.range(0, shortest - 1),
+          { stop: false, count: 0 }
+        ).count;
+
+      local _relativeTo = relativeTo[commonIndex:];
+      local _path = path[commonIndex:];
+
+      // prefix for relative difference
+      local prefix = ['..' for i in std.range(0, std.length(_relativeTo) - 1)];
+
+      // return path with prefix
+      prefix + _path,
   },
 }
