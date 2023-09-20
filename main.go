@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-clix/cli"
 	"github.com/google/go-jsonnet"
@@ -86,9 +87,16 @@ func newImporter(paths []string) (*importer, error) {
 		return nil, err
 	}
 
+	render, err := embedded.ReadFile("doc-util/render.libsonnet")
+	if err != nil {
+		return nil, err
+	}
+
+	main := strings.ReplaceAll(string(load), "(import './render.libsonnet')", string(render))
+
 	return &importer{
 		fi:   jsonnet.FileImporter{JPaths: paths},
-		util: jsonnet.MakeContents(string(load)),
+		util: jsonnet.MakeContents(main),
 	}, nil
 }
 
@@ -100,7 +108,7 @@ var docUtilPaths = []string{
 func (i *importer) Import(importedFrom, importedPath string) (contents jsonnet.Contents, foundAt string, err error) {
 	for _, p := range docUtilPaths {
 		if importedPath == p {
-			return i.util, "<internal>", nil
+			return i.util, "main.libsonnet", nil
 		}
 	}
 
