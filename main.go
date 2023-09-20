@@ -55,7 +55,10 @@ func main() {
 		}
 
 		var output map[string]string
-		json.Unmarshal([]byte(jsonStr), &output)
+		err = json.Unmarshal([]byte(jsonStr), &output)
+		if err != nil {
+			return err
+		}
 
 		for k, v := range output {
 			fullpath := filepath.Join(*dir, k)
