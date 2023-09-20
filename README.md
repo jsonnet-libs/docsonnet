@@ -100,10 +100,10 @@ d.render(import 'main.libsonnet')
 Then, you can render the markdown to the `docs/` folder using the following command:
 
 ```
-jsonnet -S -c -m docs/ docs.jsonnet
+jsonnet -J vendor -S -c -m docs/ docs.jsonnet
 ```
 
-Note that this requires `doc-util` to be installed to `vender/` to work properly.
+Note that this requires `doc-util` to be installed to `vendor/` to work properly.
 
 ### docsonnet binary
 
