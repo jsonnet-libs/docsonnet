@@ -3,7 +3,6 @@
 `doc-util` provides a Jsonnet interface for `docsonnet`,
  a Jsonnet API doc generator that uses structured data instead of comments.
 
-
 ## Install
 
 ```
@@ -15,6 +14,7 @@ jb install github.com/jsonnet-libs/docsonnet/doc-util@master
 ```jsonnet
 local d = import "github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet"
 ```
+
 
 ## Index
 
@@ -44,7 +44,7 @@ local d = import "github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet"
 
 ### fn arg
 
-```ts
+```jsonnet
 arg(name, type, default, enums)
 ```
 
@@ -52,7 +52,7 @@ arg(name, type, default, enums)
 
 ### fn fn
 
-```ts
+```jsonnet
 fn(help, args)
 ```
 
@@ -60,7 +60,7 @@ fn(help, args)
 
 ### fn obj
 
-```ts
+```jsonnet
 obj(help, fields)
 ```
 
@@ -68,7 +68,7 @@ obj(help, fields)
 
 ### fn pkg
 
-```ts
+```jsonnet
 pkg(name, url, help, filename="", version="master")
 ```
 
@@ -76,7 +76,7 @@ pkg(name, url, help, filename="", version="master")
 
 ### fn render
 
-```ts
+```jsonnet
 render(obj)
 ```
 
@@ -94,7 +94,7 @@ Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
 
 ### fn val
 
-```ts
+```jsonnet
 val(type, help, default)
 ```
 
@@ -106,7 +106,7 @@ Utilities for creating function arguments
 
 #### fn argument.new
 
-```ts
+```jsonnet
 new(name, type, default, enums)
 ```
 
@@ -130,7 +130,7 @@ Utilities for documenting Jsonnet methods (functions of objects)
 
 #### fn func.new
 
-```ts
+```jsonnet
 new(help, args)
 ```
 
@@ -138,7 +138,7 @@ new creates a new function, optionally with description and arguments
 
 #### fn func.withArgs
 
-```ts
+```jsonnet
 withArgs(args)
 ```
 
@@ -146,7 +146,7 @@ The `withArgs` modifier overrides the arguments of that function
 
 #### fn func.withHelp
 
-```ts
+```jsonnet
 withHelp(help)
 ```
 
@@ -158,7 +158,7 @@ Utilities for documenting Jsonnet objects (`{ }`).
 
 #### fn object.new
 
-```ts
+```jsonnet
 new(help, fields)
 ```
 
@@ -166,7 +166,7 @@ new creates a new object, optionally with description and fields
 
 #### fn object.withFields
 
-```ts
+```jsonnet
 withFields(fields)
 ```
 
@@ -178,14 +178,13 @@ Utilities for documenting plain Jsonnet values (primitives)
 
 #### fn value.new
 
-```ts
+```jsonnet
 new(type, help, default)
 ```
 
 new creates a new object of given type, optionally with description and default value
 
 ### obj T
-
 
 * `T.any` (`string`): `"any"` - argument of type "any"
 * `T.array` (`string`): `"array"` - argument of type "array"
@@ -201,7 +200,7 @@ new creates a new object of given type, optionally with description and default 
 
 #### fn package.new
 
-```ts
+```jsonnet
 new(name, url, help, filename="", version="master")
 ```
 
@@ -218,7 +217,7 @@ Arguments:
 
 #### fn package.newSub
 
-```ts
+```jsonnet
 newSub(name, help)
 ```
 

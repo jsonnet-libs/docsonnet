@@ -36,7 +36,10 @@
     new(name, url, help, filename='', version='master')::
       {
         name: name,
-        help: help,
+        help:
+          help
+          + std.get(self, 'installTemplate', '') % self
+          + std.get(self, 'usageTemplate', '') % self,
         'import':
           if filename != ''
           then url + '/' + filename
@@ -70,12 +73,34 @@
         help: help,
       },
 
-    withUsageTemplate(template):: {
-      usageTemplate: template,
+    withInstallTemplate(template):: {
+      installTemplate:
+        if template != null
+        then
+          |||
+
+            ## Install
+
+            ```
+            %s
+            ```
+          ||| % template
+        else '',
     },
 
-    withInstallTemplate(template):: {
-      installTemplate: template,
+    withUsageTemplate(template):: {
+      usageTemplate:
+        if template != null
+        then
+          |||
+
+            ## Usage
+
+            ```jsonnet
+            %s
+            ```
+          ||| % template
+        else '',
     },
   },
 
