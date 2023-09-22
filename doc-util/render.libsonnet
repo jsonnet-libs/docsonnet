@@ -27,7 +27,8 @@
         std.filter(
           function(k)
             !std.startsWith(k, '#')
-            && std.isObject(obj[k]),
+            && std.isObject(obj[k])
+            && !std.objectHasAll(obj[k], 'ignore'),
           std.objectFieldsAll(obj)
         ),
         []
@@ -150,6 +151,7 @@
           std.all([
             !std.startsWith(k, '#'),
             std.isObject(obj[k]),
+            !std.objectHasAll(obj[k], 'ignore'),
             !('#' + k in obj),  // not documented in parent
             !('#' in obj[k]),  // not a sub package
           ]),
@@ -390,6 +392,7 @@
         std.all([
           std.startsWith(k, '#'),
           std.isObject(obj[k]),
+          !std.objectHasAll(obj[k], 'ignore'),
           type in obj[k],
           root.util.realkey(k) in obj,
         ]),
