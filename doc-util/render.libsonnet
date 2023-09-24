@@ -14,12 +14,14 @@
           + (
             // If matches a package but warn if also has an object docstring
             if '#' in obj[k] && '#' + k in obj
+               && !std.objectHasAll(obj[k]['#'], 'ignore')
             then std.trace(
               'warning: %s both defined as object and package' % k,
               [root.package(obj[k], path + [k], parentWasPackage)]
             )
             // If matches a package, return it
             else if '#' in obj[k]
+                    && !std.objectHasAll(obj[k]['#'], 'ignore')
             then [root.package(obj[k], path + [k], parentWasPackage)]
             // If not, keep looking
             else find(obj[k], path + [k], parentWasPackage=false)
@@ -150,6 +152,7 @@
           std.all([
             !std.startsWith(k, '#'),
             std.isObject(obj[k]),
+            !std.objectHasAll(obj[k], 'ignore'),
             !('#' + k in obj),  // not documented in parent
             !('#' in obj[k]),  // not a sub package
           ]),
@@ -390,6 +393,7 @@
         std.all([
           std.startsWith(k, '#'),
           std.isObject(obj[k]),
+          !std.objectHasAll(obj[k], 'ignore'),
           type in obj[k],
           root.util.realkey(k) in obj,
         ]),
