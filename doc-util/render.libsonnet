@@ -92,10 +92,11 @@
     toString():
       std.join(
         '\n',
-        ['# ' + doc.name + '\n']
-        + (if std.get(doc, 'help', '') != ''
-           then [doc.help, '']
-           else ['', ''])
+        [
+          '# ' + doc.name + '\n',
+          std.get(doc, 'help', ''),
+          '',
+        ]
         + (if self.packages.hasPackages()
            then [
              '## Subpackages\n\n'
@@ -229,7 +230,7 @@
       std.join(
         '\n',
         [root.util.title('obj ' + self.path, std.length(path) + 2)]
-        + (if doc.object.help != ''
+        + (if std.get(doc.object, 'help', '') != ''
            then [doc.object.help]
            else [])
         + [self.fields.toString()]
@@ -376,7 +377,7 @@
         '(`%s`):' % doc.value.type,
         '`"%s"`' % obj,
         '-',
-        doc.value.help,
+        std.get(doc.value, 'help', ''),
       ]),
   },
 
