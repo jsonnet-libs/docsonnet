@@ -92,10 +92,11 @@
     toString():
       std.join(
         '\n',
-        ['# ' + doc.name + '\n']
-        + (if std.get(doc, 'help', '') != ''
-           then [doc.help, '']
-           else ['', ''])
+        [
+          '# ' + doc.name + '\n',
+          std.get(doc, 'help', ''),
+          '',
+        ]
         + (if self.packages.hasPackages()
            then [
              '## Subpackages\n\n'
@@ -229,7 +230,7 @@
       std.join(
         '\n',
         [root.util.title('obj ' + self.path, std.length(path) + 2)]
-        + (if doc.object.help != ''
+        + (if std.get(doc.object, 'help', '') != ''
            then [doc.object.help]
            else [])
         + [self.fields.toString()]
@@ -298,30 +299,40 @@
       for arg in doc['function'].args
     ]),
 
-    enums: std.join('', [
-      if arg.enums != null
+    args_list:
+      if std.length(doc['function'].args) > 0
       then
-        '\nAccepted values for `%s` are %s\n' % [
-          arg.name,
-          std.join(', ', [
-            std.manifestJsonEx(item, '', '')
-            for item in arg.enums
-          ]),
-        ]
-      else ''
-      for arg in doc['function'].args
-    ]),
+        '\nPARAMETERS:\n\n'
+        + std.join('\n', [
+          '* **%s** (`%s`)' % [arg.name, arg.type]
+          + (if arg.default != null
+             then std.join('=', [
+               '\n   - default value: `%s`' % std.manifestJsonEx(arg.default, '', ''),
+             ])
+             else '')
+          + (if arg.enums != null
+             then std.join('=', [
+               '\n   - valid values: %s' %
+               std.join(', ', [
+                 '`%s`' % std.manifestJsonEx(item, '', '')
+                 for item in arg.enums
+               ]),
+             ])
+             else '')
+          for arg in doc['function'].args
+        ])
+      else '',
 
     toString():
       std.join('\n', [
         root.util.title('fn ' + self.path, std.length(path) + 2),
         |||
           ```jsonnet
-          %(name)s(%(args)s)
+          %s(%s)
           ```
-        ||| % [name, self.args],
-        doc['function'].help,
-        self.enums,
+          %s
+        ||| % [self.path, self.args, self.args_list],
+        std.get(doc['function'], 'help', ''),
       ]),
   },
 
@@ -366,7 +377,7 @@
         '(`%s`):' % doc.value.type,
         '`"%s"`' % obj,
         '-',
-        doc.value.help,
+        std.get(doc.value, 'help', ''),
       ]),
   },
 
