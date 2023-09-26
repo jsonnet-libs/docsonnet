@@ -289,6 +289,15 @@
     fragment: root.util.fragment(std.join('', path + [name])),
     link: '[`fn %s(%s)`](#fn-%s)' % [name, self.args, self.fragment],
 
+    local getType(arg) =
+      if 'schema' in arg
+      then
+        local type = std.get(arg.schema, 'type', '');
+        if std.isArray(type)
+        then std.join(',', [t for t in type])
+        else type
+      else std.get(arg, 'type', ''),
+
     // Use BelRune as default can be 'null' as a value. Only supported for arg.schema, arg.default didn't support this, not sure how to support without breaking asssumptions downstream.
     local BelRune = std.char(7),
     local getDefault(arg) =
@@ -327,7 +336,7 @@
       then
         '\nPARAMETERS:\n\n'
         + std.join('\n', [
-          '* **%s** (`%s`)' % [arg.name, arg.type]
+          '* **%s** (`%s`)' % [arg.name, getType(arg)]
           + (
             local default = getDefault(arg);
             if default != BelRune
