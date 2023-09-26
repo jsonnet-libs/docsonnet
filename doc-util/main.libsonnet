@@ -173,6 +173,26 @@
       default: default,
       enums: enums,
     },
+    '#fromSchema': d.fn(|||
+      `fromSchema` creates a new function argument, taking a JSON `schema` to describe the type information for this argument.
+
+      Examples:
+
+      ```jsonnet
+      [
+        d.argument.fromSchema('foo', { type: 'string' }),
+        d.argument.fromSchema('bar', { type: 'string', default='loo' }),
+        d.argument.fromSchema('baz', { type: 'number', enum=[1,2,3] }),
+      ]
+      ```
+    |||, [
+      d.arg('name', d.T.string),
+      d.arg('schema', d.T.object),
+    ]),
+    fromSchema(name, schema): {
+      name: name,
+      schema: schema,
+    },
   },
   '#arg': self.argument['#new'] + self.func.withHelp('`arg` is a shorthand for `argument.new`'),
   arg:: self.argument.new,

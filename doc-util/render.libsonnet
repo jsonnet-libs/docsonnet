@@ -289,15 +289,38 @@
     fragment: root.util.fragment(std.join('', path + [name])),
     link: '[`fn %s(%s)`](#fn-%s)' % [name, self.args, self.fragment],
 
-    args: std.join(', ', [
-      if arg.default != null
-      then std.join('=', [
-        arg.name,
-        std.manifestJsonEx(arg.default, '', ''),
-      ])
-      else arg.name
-      for arg in doc['function'].args
-    ]),
+    // Use BelRune as default can be 'null' as a value. Only supported for arg.schema, arg.default didn't support this, not sure how to support without breaking asssumptions downstream.
+    local BelRune = std.char(7),
+    local getDefault(arg) =
+      if 'schema' in arg
+      then std.get(arg.schema, 'default', BelRune)
+      else
+        local d = std.get(arg, 'default', BelRune);
+        if d == null
+        then BelRune
+        else d,
+
+    local getEnum(arg) =
+      if 'schema' in arg
+      then std.get(arg.schema, 'enum', [])
+      else
+        local d = std.get(arg, 'enums', []);
+        if d == null
+        then []
+        else d,
+
+    args:
+      std.join(', ', [
+        local default = getDefault(arg);
+        if default != BelRune
+        then std.join('=', [
+          arg.name,
+          std.manifestJson(default),
+        ])
+        else arg.name
+        for arg in doc['function'].args
+      ]),
+
 
     args_list:
       if std.length(doc['function'].args) > 0
@@ -305,20 +328,23 @@
         '\nPARAMETERS:\n\n'
         + std.join('\n', [
           '* **%s** (`%s`)' % [arg.name, arg.type]
-          + (if arg.default != null
-             then std.join('=', [
-               '\n   - default value: `%s`' % std.manifestJsonEx(arg.default, '', ''),
-             ])
-             else '')
-          + (if arg.enums != null
-             then std.join('=', [
-               '\n   - valid values: %s' %
-               std.join(', ', [
-                 '`%s`' % std.manifestJsonEx(item, '', '')
-                 for item in arg.enums
-               ]),
-             ])
-             else '')
+          + (
+            local default = getDefault(arg);
+            if default != BelRune
+            then '\n   - default value: `%s`' % std.manifestJson(default)
+            else ''
+          )
+          + (
+            local enum = getEnum(arg);
+            if enum != []
+            then
+              '\n   - valid values: %s' %
+              std.join(', ', [
+                '`%s`' % std.manifestJson(item)
+                for item in enum
+              ])
+            else ''
+          )
           for arg in doc['function'].args
         ])
       else '',
