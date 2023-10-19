@@ -25,6 +25,7 @@ local d = import "github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet"
 * [`fn render(obj)`](#fn-render)
 * [`fn val(type, help, default)`](#fn-val)
 * [`obj argument`](#obj-argument)
+  * [`fn fromSchema(name, schema)`](#fn-argumentfromschema)
   * [`fn new(name, type, default, enums)`](#fn-argumentnew)
 * [`obj func`](#obj-func)
   * [`fn new(help, args)`](#fn-funcnew)
@@ -48,37 +49,64 @@ local d = import "github.com/jsonnet-libs/docsonnet/doc-util/main.libsonnet"
 arg(name, type, default, enums)
 ```
 
-`arg` is a shorthand for `argument.new`
+PARAMETERS:
 
+* **name** (`string`)
+* **type** (`string`)
+* **default** (`any`)
+* **enums** (`array`)
+
+`arg` is a shorthand for `argument.new`
 ### fn fn
 
 ```jsonnet
 fn(help, args)
 ```
 
-`fn` is a shorthand for `func.new`
+PARAMETERS:
 
+* **help** (`string`)
+* **args** (`array`)
+
+`fn` is a shorthand for `func.new`
 ### fn obj
 
 ```jsonnet
 obj(help, fields)
 ```
 
-`obj` is a shorthand for `object.new`
+PARAMETERS:
 
+* **help** (`string`)
+* **fields** (`object`)
+
+`obj` is a shorthand for `object.new`
 ### fn pkg
 
 ```jsonnet
 pkg(name, url, help, filename="", version="master")
 ```
 
-`new` is a shorthand for `package.new`
+PARAMETERS:
 
+* **name** (`string`)
+* **url** (`string`)
+* **help** (`string`)
+* **filename** (`string`)
+   - default value: `""`
+* **version** (`string`)
+   - default value: `"master"`
+
+`new` is a shorthand for `package.new`
 ### fn render
 
 ```jsonnet
 render(obj)
 ```
+
+PARAMETERS:
+
+* **obj** (`object`)
 
 `render` converts the docstrings to human readable Markdown files.
 
@@ -91,24 +119,58 @@ d.render(import 'main.libsonnet')
 
 Call with: `jsonnet -S -c -m docs/ docs.jsonnet`
 
-
 ### fn val
 
 ```jsonnet
 val(type, help, default)
 ```
 
-`val` is a shorthand for `value.new`
+PARAMETERS:
 
+* **type** (`string`)
+* **help** (`string`)
+* **default** (`any`)
+
+`val` is a shorthand for `value.new`
 ### obj argument
 
 Utilities for creating function arguments
 
+#### fn argument.fromSchema
+
+```jsonnet
+argument.fromSchema(name, schema)
+```
+
+PARAMETERS:
+
+* **name** (`string`)
+* **schema** (`object`)
+
+`fromSchema` creates a new function argument, taking a JSON `schema` to describe the type information for this argument.
+
+Examples:
+
+```jsonnet
+[
+  d.argument.fromSchema('foo', { type: 'string' }),
+  d.argument.fromSchema('bar', { type: 'string', default='loo' }),
+  d.argument.fromSchema('baz', { type: 'number', enum=[1,2,3] }),
+]
+```
+
 #### fn argument.new
 
 ```jsonnet
-new(name, type, default, enums)
+argument.new(name, type, default, enums)
 ```
+
+PARAMETERS:
+
+* **name** (`string`)
+* **type** (`string`)
+* **default** (`any`)
+* **enums** (`array`)
 
 `new` creates a new function argument, taking the `name`, the `type`. Optionally it
 can take a `default` value and `enum`-erate potential values.
@@ -123,7 +185,6 @@ Examples:
 ]
 ```
 
-
 ### obj func
 
 Utilities for documenting Jsonnet methods (functions of objects)
@@ -131,27 +192,37 @@ Utilities for documenting Jsonnet methods (functions of objects)
 #### fn func.new
 
 ```jsonnet
-new(help, args)
+func.new(help, args)
 ```
 
-new creates a new function, optionally with description and arguments
+PARAMETERS:
 
+* **help** (`string`)
+* **args** (`array`)
+
+new creates a new function, optionally with description and arguments
 #### fn func.withArgs
 
 ```jsonnet
-withArgs(args)
+func.withArgs(args)
 ```
 
-The `withArgs` modifier overrides the arguments of that function
+PARAMETERS:
 
+* **args** (`array`)
+
+The `withArgs` modifier overrides the arguments of that function
 #### fn func.withHelp
 
 ```jsonnet
-withHelp(help)
+func.withHelp(help)
 ```
 
-The `withHelp` modifier overrides the help text of that function
+PARAMETERS:
 
+* **help** (`string`)
+
+The `withHelp` modifier overrides the help text of that function
 ### obj object
 
 Utilities for documenting Jsonnet objects (`{ }`).
@@ -159,19 +230,26 @@ Utilities for documenting Jsonnet objects (`{ }`).
 #### fn object.new
 
 ```jsonnet
-new(help, fields)
+object.new(help, fields)
 ```
 
-new creates a new object, optionally with description and fields
+PARAMETERS:
 
+* **help** (`string`)
+* **fields** (`object`)
+
+new creates a new object, optionally with description and fields
 #### fn object.withFields
 
 ```jsonnet
-withFields(fields)
+object.withFields(fields)
 ```
 
-The `withFields` modifier overrides the fields property of an already created object
+PARAMETERS:
 
+* **fields** (`object`)
+
+The `withFields` modifier overrides the fields property of an already created object
 ### obj value
 
 Utilities for documenting plain Jsonnet values (primitives)
@@ -179,11 +257,16 @@ Utilities for documenting plain Jsonnet values (primitives)
 #### fn value.new
 
 ```jsonnet
-new(type, help, default)
+value.new(type, help, default)
 ```
 
-new creates a new object of given type, optionally with description and default value
+PARAMETERS:
 
+* **type** (`string`)
+* **help** (`string`)
+* **default** (`any`)
+
+new creates a new object of given type, optionally with description and default value
 ### obj T
 
 * `T.any` (`string`): `"any"` - argument of type "any"
@@ -201,8 +284,18 @@ new creates a new object of given type, optionally with description and default 
 #### fn package.new
 
 ```jsonnet
-new(name, url, help, filename="", version="master")
+package.new(name, url, help, filename="", version="master")
 ```
+
+PARAMETERS:
+
+* **name** (`string`)
+* **url** (`string`)
+* **help** (`string`)
+* **filename** (`string`)
+   - default value: `""`
+* **version** (`string`)
+   - default value: `"master"`
 
 `new` creates a new package
 
@@ -214,12 +307,16 @@ Arguments:
 * `filename` for the import, defaults to blank for backward compatibility
 * `version` for jsonnet-bundler install, defaults to `master` just like jsonnet-bundler
 
-
 #### fn package.newSub
 
 ```jsonnet
-newSub(name, help)
+package.newSub(name, help)
 ```
+
+PARAMETERS:
+
+* **name** (`string`)
+* **help** (`string`)
 
 `newSub` creates a package without the preconfigured install/usage templates.
 
@@ -227,4 +324,3 @@ Arguments:
 
 * given `name`
 * `help` text
-
