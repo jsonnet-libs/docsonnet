@@ -295,7 +295,7 @@
         then std.get(arg.schema, 'type', '')
         else std.get(arg, 'type', '');
       if std.isArray(type)
-      then std.join(',', ['`%s`' % t for t in type])
+      then std.join(',', ['`%s`' % t for t in std.set(type)])
       else '`%s`' % type,
 
     // Use BelRune as default can be 'null' as a value. Only supported for arg.schema, arg.default didn't support this, not sure how to support without breaking asssumptions downstream.
