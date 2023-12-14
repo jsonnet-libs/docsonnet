@@ -295,8 +295,8 @@
         then std.get(arg.schema, 'type', '')
         else std.get(arg, 'type', '');
       if std.isArray(type)
-      then std.join(',', [t for t in type])
-      else type,
+      then std.join(',', ['`%s`' % t for t in std.set(type)])
+      else '`%s`' % type,
 
     // Use BelRune as default can be 'null' as a value. Only supported for arg.schema, arg.default didn't support this, not sure how to support without breaking asssumptions downstream.
     local BelRune = std.char(7),
@@ -318,13 +318,16 @@
         then []
         else d,
 
+    local manifest(value) =
+      std.manifestJsonEx(value, '', '', ': '),
+
     args:
       std.join(', ', [
         local default = getDefault(arg);
         if default != BelRune
         then std.join('=', [
           arg.name,
-          std.manifestJson(default),
+          manifest(default),
         ])
         else arg.name
         for arg in doc['function'].args
@@ -336,11 +339,11 @@
       then
         '\nPARAMETERS:\n\n'
         + std.join('\n', [
-          '* **%s** (`%s`)' % [arg.name, getType(arg)]
+          '* **%s** (%s)' % [arg.name, getType(arg)]
           + (
             local default = getDefault(arg);
             if default != BelRune
-            then '\n   - default value: `%s`' % std.manifestJson(default)
+            then '\n   - default value: `%s`' % manifest(default)
             else ''
           )
           + (
@@ -349,7 +352,7 @@
             then
               '\n   - valid values: %s' %
               std.join(', ', [
-                '`%s`' % std.manifestJson(item)
+                '`%s`' % manifest(item)
                 for item in enum
               ])
             else ''
